@@ -16,12 +16,12 @@
     </div>
 
     <div v-if="step === 2" class="register-panel">
-      <img :src="passwordQr" alt="QR nouveau mot de passe" class="qr-image" />
+      <img :src="passwordQr" alt="QR code contenant le nouveau mot de passe généré" class="qr-image" />
 
       <div class="secret-box">
         <span>{{ password }}</span>
 
-        <button type="button" @click="copyPassword">
+        <button type="button" :aria-label="copied ? 'Mot de passe copié' : 'Copier le mot de passe'" @click="copyPassword">
           <span v-if="copied">
             <span class="copy-check">✓</span>
             Copié
@@ -36,7 +36,7 @@
     </div>
 
     <div v-if="step === 3" class="register-panel">
-      <img :src="totpQr" alt="QR nouvelle 2FA" class="qr-image" />
+      <img :src="totpQr" alt="QR code pour configurer la nouvelle double authentification TOTP" class="qr-image" />
 
       <div class="auth-form__group">
         <label for="totp">Entrez le code à 6 chiffres</label>
@@ -49,7 +49,7 @@
     </div>
 
     <div v-if="step === 4" class="success-panel">
-      <div class="success-panel__icon">✓</div>
+      <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <h2>Identifiants renouvelés</h2>
 

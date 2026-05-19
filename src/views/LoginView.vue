@@ -11,7 +11,7 @@
     <form v-if="!loginSuccess" class="auth-form" @submit.prevent="handleLogin">
       <div class="auth-form__group">
         <label for="username">Identifiant</label>
-        <input id="username" v-model="form.username" type="text" placeholder="ex: michel.ranu" />
+        <input id="username" v-model="form.username" type="text" placeholder="ex: michel.ranu" autocomplete="username" />
       </div>
 
       <div class="auth-form__group">
@@ -21,17 +21,20 @@
           v-model="form.password"
           type="password"
           placeholder="Votre mot de passe"
+          autocomplete="current-password"
         />
       </div>
 
       <div class="auth-form__group">
         <label for="totp">Code 2FA</label>
-        <input id="totp" v-model="form.totp" type="text" placeholder="123456" />
+        <input id="totp" v-model="form.totp" type="text" placeholder="123456" autocomplete="one-time-code" inputmode="numeric" />
       </div>
 
-      <p v-if="errorMessage" class="error-box">
-        {{ errorMessage }}
-      </p>
+      <div aria-live="polite" aria-atomic="true">
+        <p v-if="errorMessage" class="error-box" role="alert">
+          {{ errorMessage }}
+        </p>
+      </div>
 
       <RouterLink v-if="isLocked" class="auth-button auth-button--secondary" to="/">
         Retour à l'accueil
@@ -43,7 +46,7 @@
     </form>
 
     <div v-else class="success-panel">
-      <div class="success-panel__icon">✓</div>
+      <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <p>
         Bienvenue, <strong>{{ form.username }}</strong

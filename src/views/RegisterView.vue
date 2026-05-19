@@ -1,16 +1,16 @@
 <template>
   <AuthLayout badge="Inscription" :title="stepContent.title" :description="stepContent.description">
-    <div class="steps">
-      <span :class="['steps__item', { 'steps__item--active': step >= 1 }]">1 Identifiant</span>
-      <span :class="['steps__item', { 'steps__item--active': step >= 2 }]">2 Mot de passe</span>
-      <span :class="['steps__item', { 'steps__item--active': step >= 3 }]">3 2FA</span>
-      <span :class="['steps__item', { 'steps__item--active': step >= 4 }]">4 Connexion</span>
+    <div class="steps" role="list" aria-label="Progression de l'inscription">
+      <span role="listitem" :class="['steps__item', { 'steps__item--active': step >= 1 }]" :aria-current="step === 1 ? 'step' : undefined">1 Identifiant</span>
+      <span role="listitem" :class="['steps__item', { 'steps__item--active': step >= 2 }]" :aria-current="step === 2 ? 'step' : undefined">2 Mot de passe</span>
+      <span role="listitem" :class="['steps__item', { 'steps__item--active': step >= 3 }]" :aria-current="step === 3 ? 'step' : undefined">3 2FA</span>
+      <span role="listitem" :class="['steps__item', { 'steps__item--active': step >= 4 }]" :aria-current="step === 4 ? 'step' : undefined">4 Connexion</span>
     </div>
 
     <form v-if="step === 1" class="auth-form" @submit.prevent="generatePassword">
       <div class="auth-form__group">
         <label for="username">Identifiant souhaité</label>
-        <input id="username" v-model="username" type="text" placeholder="prenom.nom" />
+        <input id="username" v-model="username" type="text" placeholder="prenom.nom" autocomplete="username" />
       </div>
 
       <button class="auth-button auth-button--primary" type="submit">
@@ -19,11 +19,11 @@
     </form>
 
     <div v-if="step === 2" class="register-panel">
-      <img :src="passwordQr" alt="QR mot de passe" class="qr-image" />
+      <img :src="passwordQr" alt="QR code contenant le mot de passe généré" class="qr-image" />
 
       <div class="secret-box">
         <span>{{ password }}</span>
-        <button type="button" @click="copyPassword">
+        <button type="button" :aria-label="copied ? 'Mot de passe copié' : 'Copier le mot de passe'" @click="copyPassword">
           <span v-if="copied">
             <span class="copy-check">✓</span>
             Copié
@@ -41,7 +41,7 @@
     </div>
 
     <div v-if="step === 3" class="register-panel">
-      <img :src="totpQr" alt="QR 2FA" class="qr-image" />
+      <img :src="totpQr" alt="QR code pour configurer la double authentification TOTP" class="qr-image" />
 
       <div class="auth-form__group">
         <label for="totp">Entrez le code à 6 chiffres</label>
@@ -54,7 +54,7 @@
     </div>
 
     <div v-if="step === 4" class="success-panel">
-      <div class="success-panel__icon">✓</div>
+      <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <h2>Compte activé avec succès</h2>
 
