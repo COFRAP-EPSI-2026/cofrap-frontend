@@ -1,6 +1,8 @@
 export const fr = {
   header: {
     langButtonLabel: 'Langue : Français',
+    darkModeButton: 'Activer le mode sombre',
+    lightModeButton: 'Activer le mode clair',
     accessibilityButtonLabel: "Options d'accessibilité",
     helpButtonLabel: 'Aide',
   },

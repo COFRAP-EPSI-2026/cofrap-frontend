@@ -1,3 +1,61 @@
+// ── CSS Custom Properties ─────────────────────────────────────────────────────
+
+:root {
+  --color-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8fafc;
+  --color-border: #e5e7eb;
+  --color-border-input: #cbd5e1;
+  --color-text: #111827;
+  --color-text-strong: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-faint: #6b7280;
+  --color-primary: #1d4ed8;
+  --color-primary-btn: #2448d8;
+  --color-primary-ring: rgb(29 78 216 / 12%);
+  --color-badge-bg: #e8efff;
+  --color-badge-text: #1d4ed8;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fca5a5;
+  --color-error-text: #991b1b;
+  --color-warning-bg: #fff7ed;
+  --color-warning-border: #f59e0b;
+  --color-warning-text: #92400e;
+  --color-success-bg: #dcfce7;
+  --color-success-text: #15803d;
+  --color-copy-check: #22c55e;
+  --color-shadow: rgb(15 23 42 / 10%);
+}
+
+[data-theme='dark'] {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-subtle: #162032;
+  --color-border: #334155;
+  --color-border-input: #475569;
+  --color-text: #f1f5f9;
+  --color-text-strong: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-text-faint: #94a3b8;
+  --color-primary: #60a5fa;
+  --color-primary-btn: #2563eb;
+  --color-primary-ring: rgb(59 130 246 / 20%);
+  --color-badge-bg: #1e3a8a;
+  --color-badge-text: #93c5fd;
+  --color-error-bg: #450a0a;
+  --color-error-border: #991b1b;
+  --color-error-text: #fca5a5;
+  --color-warning-bg: #431407;
+  --color-warning-border: #b45309;
+  --color-warning-text: #fde68a;
+  --color-success-bg: #052e16;
+  --color-success-text: #86efac;
+  --color-copy-check: #4ade80;
+  --color-shadow: rgb(0 0 0 / 40%);
+}
+
+// ── Global ────────────────────────────────────────────────────────────────────
+
 * {
   box-sizing: border-box;
 }
@@ -11,8 +69,11 @@ body {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  background: #f4f5f7;
-  color: #111827;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 a {
@@ -25,14 +86,19 @@ input {
   font: inherit;
 }
 
+// ── Header ────────────────────────────────────────────────────────────────────
+
 .app-header {
   height: 64px;
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 
   &__brand {
     display: flex;
@@ -53,11 +119,12 @@ input {
 
   &__name {
     font-weight: 800;
+    color: var(--color-text-strong);
   }
 
   &__subtitle,
   &__separator {
-    color: #6b7280;
+    color: var(--color-text-faint);
     font-size: 14px;
   }
 
@@ -69,17 +136,24 @@ input {
       min-width: 36px;
       height: 36px;
       border-radius: 10px;
-      border: 1px solid #d1d5db;
-      background: white;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
       cursor: pointer;
       font-weight: 700;
+      transition:
+        background-color 0.2s,
+        border-color 0.2s,
+        color 0.2s;
     }
   }
 }
 
+// ── Auth page ─────────────────────────────────────────────────────────────────
+
 .auth-page {
   min-height: 100vh;
-  background: #f4f5f7;
+  background: var(--color-bg);
 
   &__content {
     display: flex;
@@ -88,21 +162,26 @@ input {
   }
 }
 
+// ── Auth layout card ──────────────────────────────────────────────────────────
+
 .auth-layout {
   width: min(100%, 420px);
   padding: 32px;
   border-radius: 24px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 20px 45px rgb(15 23 42 / 10%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 45px var(--color-shadow);
   text-align: center;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 
   &__badge {
     display: inline-flex;
     padding: 8px 16px;
     border-radius: 999px;
-    background: #e8efff;
-    color: #1d4ed8;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
     font-size: 12px;
     font-weight: 800;
     text-transform: uppercase;
@@ -114,11 +193,12 @@ input {
     font-size: 32px;
     line-height: 1.1;
     font-weight: 800;
+    color: var(--color-text-strong);
   }
 
   &__description {
     margin: 0;
-    color: #475569;
+    color: var(--color-text-muted);
     line-height: 1.7;
   }
 
@@ -129,14 +209,18 @@ input {
   &__footer {
     margin-top: 32px;
     padding-top: 20px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--color-border);
   }
 }
+
+// ── Auth actions (home) ───────────────────────────────────────────────────────
 
 .auth-actions {
   display: grid;
   gap: 12px;
 }
+
+// ── Auth button ───────────────────────────────────────────────────────────────
 
 .auth-button {
   display: flex;
@@ -152,30 +236,40 @@ input {
   cursor: pointer;
 
   &--primary {
-    background: #2448d8;
+    background: var(--color-primary-btn);
     color: white;
   }
 
   &--secondary {
-    border: 1px solid #cbd5e1;
-    color: #0f172a;
-    background: white;
+    border: 1px solid var(--color-border-input);
+    color: var(--color-text-strong);
+    background: var(--color-surface);
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--color-text-faint);
+    border: 1px dashed var(--color-border-input);
   }
 }
+
+// ── Auth footer ───────────────────────────────────────────────────────────────
 
 .auth-footer {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-faint);
 
   a {
-    color: #1d4ed8;
+    color: var(--color-primary);
     font-weight: 700;
     text-decoration: underline;
   }
 }
+
+// ── Auth form ─────────────────────────────────────────────────────────────────
 
 .auth-form {
   display: grid;
@@ -189,7 +283,7 @@ input {
     label {
       font-size: 14px;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--color-text-strong);
     }
 
     input {
@@ -197,20 +291,31 @@ input {
       min-height: 52px;
       padding: 0 16px;
       border-radius: 12px;
-      border: 1px solid #cbd5e1;
-      background: white;
-      color: #0f172a;
+      border: 1px solid var(--color-border-input);
+      background: var(--color-surface);
+      color: var(--color-text-strong);
       font-size: 15px;
+      transition:
+        background-color 0.2s,
+        border-color 0.2s,
+        color 0.2s;
+
+      &::placeholder {
+        color: var(--color-text-faint);
+      }
 
       &:focus {
-        outline: 2px solid #1d4ed8;
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
-        border-color: #1d4ed8;
-        box-shadow: 0 0 0 4px rgb(29 78 216 / 12%);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px var(--color-primary-ring);
       }
     }
   }
 }
+
+// ── Register result ───────────────────────────────────────────────────────────
+
 .register-result {
   display: grid;
   gap: 20px;
@@ -218,7 +323,7 @@ input {
   &__item {
     display: grid;
     gap: 10px;
-    color: #0f172a;
+    color: var(--color-text-strong);
   }
 
   &__qr {
@@ -228,33 +333,40 @@ input {
     display: grid;
     place-items: center;
     border-radius: 16px;
-    border: 1px dashed #94a3b8;
-    background: #f8fafc;
-    color: #1d4ed8;
+    border: 1px dashed var(--color-border-input);
+    background: var(--color-surface-subtle);
+    color: var(--color-primary);
     font-weight: 800;
   }
 }
+
+// ── Steps progress indicator ──────────────────────────────────────────────────
+
 .steps {
   display: flex;
   justify-content: center;
   gap: 8px;
   margin-bottom: 24px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-text-faint);
 
   &__item {
     font-weight: 700;
 
     &--active {
-      color: #1d4ed8;
+      color: var(--color-primary);
     }
   }
 }
+
+// ── Register panel ────────────────────────────────────────────────────────────
 
 .register-panel {
   display: grid;
   gap: 20px;
 }
+
+// ── Fake QR placeholder ───────────────────────────────────────────────────────
 
 .fake-qr {
   width: 160px;
@@ -263,12 +375,14 @@ input {
   display: grid;
   place-items: center;
   border-radius: 16px;
-  border: 1px dashed #94a3b8;
-  background: #f8fafc;
-  color: #1d4ed8;
+  border: 1px dashed var(--color-border-input);
+  background: var(--color-surface-subtle);
+  color: var(--color-primary);
   font-weight: 900;
   font-size: 28px;
 }
+
+// ── Secret box ────────────────────────────────────────────────────────────────
 
 .secret-box {
   display: flex;
@@ -276,29 +390,39 @@ input {
   gap: 12px;
   padding: 12px;
   border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-strong);
 
   button {
     padding: 8px 12px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: white;
+    border: 1px solid var(--color-border-input);
+    background: var(--color-surface);
+    color: var(--color-text-strong);
     cursor: pointer;
     font-weight: 700;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s;
   }
 }
+
+// ── Warning box ───────────────────────────────────────────────────────────────
 
 .warning-box {
   margin: 0;
   padding: 14px;
   border-radius: 12px;
-  background: #fff7ed;
-  border: 1px solid #f59e0b;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning-text);
   font-size: 14px;
   line-height: 1.5;
 }
+
+// ── Success panel ─────────────────────────────────────────────────────────────
 
 .success-panel {
   display: grid;
@@ -312,8 +436,8 @@ input {
     display: grid;
     place-items: center;
     border-radius: 999px;
-    background: #dcfce7;
-    color: #15803d;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
     font-size: 32px;
     font-weight: 900;
   }
@@ -324,60 +448,50 @@ input {
   }
 
   p {
-    color: #475569;
+    color: var(--color-text-muted);
     line-height: 1.6;
   }
 }
+
+// ── QR image — fond toujours blanc pour la lisibilité par caméra ──────────────
+
 .qr-image {
   width: 160px;
   height: 160px;
   margin: 0 auto;
   padding: 12px;
   border-radius: 16px;
-  background: white;
-  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  border: 1px dashed var(--color-border-input);
 }
+
+// ── Error box ─────────────────────────────────────────────────────────────────
+
 .error-box {
   margin: 0;
   padding: 14px;
   border-radius: 12px;
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error-text);
   font-size: 14px;
   line-height: 1.5;
   text-align: left;
 }
-.secret-box button {
-  transition: 0.2s ease;
-}
 
-.secret-box button:has(span),
-.secret-box button {
-  color: #0f172a;
-}
+// ── Copy check icon ───────────────────────────────────────────────────────────
 
-.secret-box button {
-  font-weight: 700;
-}
-
-.secret-box button.copied {
-  color: #15803d;
-}
 .copy-check {
-  color: #22c55e;
+  color: var(--color-copy-check);
   margin-right: 4px;
   font-weight: 700;
 }
-.auth-button--ghost {
-  background: transparent;
-  color: #64748b;
-  border: 1px dashed #cbd5e1;
-}
+
+// ── Success message (inline) ──────────────────────────────────────────────────
 
 .success-message {
   margin: 16px 0 0;
-  color: #15803d;
+  color: var(--color-success-text);
   font-size: 14px;
   font-weight: 700;
 }

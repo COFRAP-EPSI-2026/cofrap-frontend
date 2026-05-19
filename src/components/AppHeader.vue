@@ -9,6 +9,13 @@
 
     <div role="toolbar" aria-label="Actions de la page" class="app-header__actions">
       <button type="button" :aria-label="t.header.langButtonLabel">FR</button>
+      <button
+        type="button"
+        :aria-label="isDark ? t.header.lightModeButton : t.header.darkModeButton"
+        @click="toggleTheme"
+      >
+        {{ isDark ? '☀️' : '🌙' }}
+      </button>
       <button type="button" :aria-label="t.header.accessibilityButtonLabel">♿</button>
       <button type="button" :aria-label="t.header.helpButtonLabel">?</button>
     </div>
@@ -17,6 +24,8 @@
 
 <script setup lang="ts">
 import { useLang } from '@/composables/useLang'
+import { useTheme } from '@/composables/useTheme'
 
 const { t } = useLang()
+const { isDark, toggleTheme } = useTheme()
 </script>
