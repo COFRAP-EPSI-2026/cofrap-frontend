@@ -76,6 +76,7 @@ export const fr = {
     totpLabel: 'Entrez le code à 6 chiffres',
     totpPlaceholder: '123456',
     activateButton: 'Vérifier et activer mon compte',
+    totpError: 'Code 2FA invalide. Vérifiez votre application TOTP et réessayez.',
     successTitle: 'Compte activé avec succès',
     successMessagePrefix: 'Bienvenue,',
     successMessageSuffix:
@@ -106,6 +107,7 @@ export const fr = {
     totpLabel: 'Entrez le code à 6 chiffres',
     totpPlaceholder: '123456',
     activateButton: 'Réactiver mon compte',
+    totpError: 'Code 2FA invalide. Vérifiez votre application TOTP et réessayez.',
     successTitle: 'Identifiants renouvelés',
     successMessage: 'Votre compte est de nouveau actif.',
     successButton: 'Retour à la connexion',

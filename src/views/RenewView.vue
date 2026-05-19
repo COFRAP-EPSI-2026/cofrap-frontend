@@ -49,7 +49,15 @@
           type="text"
           :placeholder="t.renew.totpPlaceholder"
           inputmode="numeric"
+          :aria-invalid="!!totpError"
+          :aria-describedby="totpError ? 'totp-error' : undefined"
         />
+      </div>
+
+      <div aria-live="polite" aria-atomic="true">
+        <p v-if="totpError" id="totp-error" class="error-box" role="alert">
+          {{ totpError }}
+        </p>
       </div>
 
       <button class="auth-button auth-button--primary" type="submit">
@@ -94,13 +102,21 @@ const focusTitle = async () => {
   document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
 }
 
-watch(step, focusTitle)
+watch(step, async (newStep) => {
+  await nextTick()
+  if (newStep === 3) {
+    document.getElementById('totp')?.focus()
+  } else {
+    document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+  }
+})
 const password = ref('')
 const passwordQr = ref('')
 const totpSecret = ref('')
 const totpQr = ref('')
 const totp = ref('')
 const copied = ref(false)
+const totpError = ref('')
 
 const stepContent = computed(() => {
   if (step.value === 1) return { title: t.renew.step1Title, description: t.renew.step1Description }
@@ -139,7 +155,12 @@ const renewCredentials = async () => {
 }
 
 const activateRenewal = () => {
-  if (!totp.value.trim()) return
+  totpError.value = ''
+
+  if (!totp.value.trim()) {
+    totpError.value = t.renew.totpError
+    return
+  }
 
   const storedUser = localStorage.getItem('cofrap-user')
   if (!storedUser) return

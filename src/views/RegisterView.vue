@@ -81,7 +81,15 @@
           type="text"
           :placeholder="t.register.totpPlaceholder"
           inputmode="numeric"
+          :aria-invalid="!!totpError"
+          :aria-describedby="totpError ? 'totp-error' : undefined"
         />
+      </div>
+
+      <div aria-live="polite" aria-atomic="true">
+        <p v-if="totpError" id="totp-error" class="error-box" role="alert">
+          {{ totpError }}
+        </p>
       </div>
 
       <button class="auth-button auth-button--primary" type="submit">
@@ -130,7 +138,14 @@ const focusTitle = async () => {
   document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
 }
 
-watch(step, focusTitle)
+watch(step, async (newStep) => {
+  await nextTick()
+  if (newStep === 3) {
+    document.getElementById('totp')?.focus()
+  } else {
+    document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+  }
+})
 const username = ref('')
 const totp = ref('')
 
@@ -141,6 +156,7 @@ const totpSecret = ref('')
 const totpQr = ref('')
 
 const copied = ref(false)
+const totpError = ref('')
 
 const stepContent = computed(() => {
   if (step.value === 1) return { title: t.register.step1Title, description: t.register.step1Description }
@@ -176,6 +192,8 @@ const generatePassword = async () => {
 }
 
 const activateAccount = () => {
+  totpError.value = ''
+
   const totpInstance = new OTPAuth.TOTP({
     issuer: 'COFRAP',
     label: username.value,
@@ -190,7 +208,10 @@ const activateAccount = () => {
     window: 1,
   })
 
-  if (delta === null) return
+  if (delta === null) {
+    totpError.value = t.register.totpError
+    return
+  }
 
   localStorage.setItem(
     'cofrap-user',
