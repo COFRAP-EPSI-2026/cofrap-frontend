@@ -314,6 +314,65 @@ input {
   }
 }
 
+// ── Password input with toggle ────────────────────────────────────────────────
+
+.password-input {
+  position: relative;
+
+  &__field {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 48px 0 16px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border-input);
+    background: var(--color-surface);
+    color: var(--color-text-strong);
+    font-size: 15px;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s;
+
+    &::placeholder {
+      color: var(--color-text-faint);
+    }
+
+    &:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px var(--color-primary-ring);
+    }
+  }
+
+  &__toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-faint);
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--color-text-strong);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
 // ── Register result ───────────────────────────────────────────────────────────
 
 .register-result {

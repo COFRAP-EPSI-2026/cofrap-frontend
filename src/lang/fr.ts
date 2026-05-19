@@ -1,4 +1,9 @@
 export const fr = {
+  passwordInput: {
+    show: 'Afficher le mot de passe',
+    hide: 'Masquer le mot de passe',
+  },
+
   header: {
     langButtonLabel: 'Langue : Français',
     darkModeButton: 'Activer le mode sombre',

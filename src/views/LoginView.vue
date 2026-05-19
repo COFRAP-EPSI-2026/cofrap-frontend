@@ -18,10 +18,9 @@
 
       <div class="auth-form__group">
         <label for="password">{{ t.login.passwordLabel }}</label>
-        <input
+        <PasswordInput
           id="password"
           v-model="form.password"
-          type="password"
           :placeholder="t.login.passwordPlaceholder"
           autocomplete="current-password"
         />
@@ -81,6 +80,7 @@ import { useRouter } from 'vue-router'
 import * as OTPAuth from 'otpauth'
 
 import AuthLayout from '@/components/AuthLayout.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { useLang } from '@/composables/useLang'
 
 const router = useRouter()
