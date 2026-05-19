@@ -1,21 +1,19 @@
 <template>
-  <AuthLayout
-    badge="Espace sécurisé"
-    title="Bienvenue sur COFRAP Cloud"
-    description="Accédez à vos applicatifs métier. Mot de passe généré et double authentification obligatoires pour toutes les nouvelles connexions."
-  >
+  <AuthLayout :badge="t.home.badge" :title="t.home.title" :description="t.home.description">
     <div class="auth-actions">
-      <RouterLink class="auth-button auth-button--primary" to="/login"> Se connecter </RouterLink>
+      <RouterLink class="auth-button auth-button--primary" to="/login">
+        {{ t.home.loginButton }}
+      </RouterLink>
 
       <RouterLink class="auth-button auth-button--secondary" to="/register">
-        Créer un compte
+        {{ t.home.registerButton }}
       </RouterLink>
     </div>
 
     <template #footer>
       <div class="auth-footer">
-        <span>v2.4 · PoC serverless</span>
-        <a href="#">Besoin d'aide ?</a>
+        <span>{{ t.home.footerVersion }}</span>
+        <a href="#">{{ t.home.footerHelp }}</a>
       </div>
     </template>
   </AuthLayout>
@@ -23,4 +21,7 @@
 
 <script setup lang="ts">
 import AuthLayout from '@/components/AuthLayout.vue'
+import { useLang } from '@/composables/useLang'
+
+const { t } = useLang()
 </script>

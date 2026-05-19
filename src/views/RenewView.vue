@@ -1,27 +1,28 @@
 <template>
   <AuthLayout
-    badge="Renouvellement"
+    :badge="t.renew.badge"
     :title="stepContent.title"
     :description="stepContent.description"
   >
     <div v-if="step === 1" class="register-panel">
-      <p class="warning-box">
-        Vos identifiants ont expiré. Un nouveau mot de passe et une nouvelle double authentification
-        vont être générés.
-      </p>
+      <p class="warning-box">{{ t.renew.warning }}</p>
 
       <button class="auth-button auth-button--primary" type="button" @click="renewCredentials">
-        Renouveler mes identifiants
+        {{ t.renew.renewButton }}
       </button>
     </div>
 
     <div v-if="step === 2" class="register-panel">
-      <img :src="passwordQr" alt="QR code contenant le nouveau mot de passe généré" class="qr-image" />
+      <img :src="passwordQr" :alt="t.renew.passwordQrAlt" class="qr-image" />
 
       <div class="secret-box">
         <span>{{ password }}</span>
 
-        <button type="button" :aria-label="copied ? 'Mot de passe copié' : 'Copier le mot de passe'" @click="copyPassword">
+        <button
+          type="button"
+          :aria-label="copied ? t.renew.copiedButton : t.renew.copyButton"
+          @click="copyPassword"
+        >
           <span v-if="copied">
             <span class="copy-check">✓</span>
             Copié
@@ -31,39 +32,45 @@
       </div>
 
       <button class="auth-button auth-button--primary" type="button" @click="step = 3">
-        Continuer vers la 2FA
+        {{ t.renew.continueButton }}
       </button>
     </div>
 
     <div v-if="step === 3" class="register-panel">
-      <img :src="totpQr" alt="QR code pour configurer la nouvelle double authentification TOTP" class="qr-image" />
+      <img :src="totpQr" :alt="t.renew.totpQrAlt" class="qr-image" />
 
       <div class="auth-form__group">
-        <label for="totp">Entrez le code à 6 chiffres</label>
-        <input id="totp" v-model="totp" type="text" placeholder="123456" />
+        <label for="totp">{{ t.renew.totpLabel }}</label>
+        <input
+          id="totp"
+          v-model="totp"
+          type="text"
+          :placeholder="t.renew.totpPlaceholder"
+          inputmode="numeric"
+        />
       </div>
 
       <button class="auth-button auth-button--primary" type="button" @click="activateRenewal">
-        Réactiver mon compte
+        {{ t.renew.activateButton }}
       </button>
     </div>
 
     <div v-if="step === 4" class="success-panel">
       <div class="success-panel__icon" aria-hidden="true">✓</div>
 
-      <h2>Identifiants renouvelés</h2>
+      <h2>{{ t.renew.successTitle }}</h2>
 
-      <p>Votre compte est de nouveau actif.</p>
+      <p>{{ t.renew.successMessage }}</p>
 
       <RouterLink class="auth-button auth-button--primary" to="/login">
-        Retour à la connexion
+        {{ t.renew.successButton }}
       </RouterLink>
     </div>
 
     <template #footer>
       <div class="auth-footer">
-        <RouterLink to="/">Retour accueil</RouterLink>
-        <RouterLink to="/login">Connexion</RouterLink>
+        <RouterLink to="/">{{ t.renew.footerBackHome }}</RouterLink>
+        <RouterLink to="/login">{{ t.renew.footerLogin }}</RouterLink>
       </div>
     </template>
   </AuthLayout>
@@ -74,6 +81,9 @@ import { computed, ref } from 'vue'
 import QRCode from 'qrcode'
 
 import AuthLayout from '@/components/AuthLayout.vue'
+import { useLang } from '@/composables/useLang'
+
+const { t } = useLang()
 
 const step = ref(1)
 const password = ref('')
@@ -84,32 +94,10 @@ const totp = ref('')
 const copied = ref(false)
 
 const stepContent = computed(() => {
-  if (step.value === 1) {
-    return {
-      title: 'Renouveler l’accès',
-      description:
-        'Vos identifiants doivent être renouvelés pour continuer à utiliser COFRAP Cloud.',
-    }
-  }
-
-  if (step.value === 2) {
-    return {
-      title: 'Nouveau mot de passe',
-      description: 'Scannez ou copiez votre nouveau mot de passe généré automatiquement.',
-    }
-  }
-
-  if (step.value === 3) {
-    return {
-      title: 'Nouvelle double authentification',
-      description: 'Scannez le QR code puis saisissez le code généré par votre application TOTP.',
-    }
-  }
-
-  return {
-    title: '',
-    description: '',
-  }
+  if (step.value === 1) return { title: t.renew.step1Title, description: t.renew.step1Description }
+  if (step.value === 2) return { title: t.renew.step2Title, description: t.renew.step2Description }
+  if (step.value === 3) return { title: t.renew.step3Title, description: t.renew.step3Description }
+  return { title: '', description: '' }
 })
 
 const generateSecurePassword = () => {

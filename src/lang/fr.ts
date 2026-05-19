@@ -1,0 +1,108 @@
+export const fr = {
+  header: {
+    langButtonLabel: 'Langue : Français',
+    accessibilityButtonLabel: "Options d'accessibilité",
+    helpButtonLabel: 'Aide',
+  },
+
+  home: {
+    badge: 'Espace sécurisé',
+    title: 'Bienvenue sur COFRAP Cloud',
+    description:
+      'Accédez à vos applicatifs métier. Mot de passe généré et double authentification obligatoires pour toutes les nouvelles connexions.',
+    loginButton: 'Se connecter',
+    registerButton: 'Créer un compte',
+    footerVersion: 'v2.4 · PoC serverless',
+    footerHelp: "Besoin d'aide ?",
+  },
+
+  login: {
+    badge: 'Connexion',
+    title: 'Se connecter',
+    description:
+      'Authentifiez-vous avec votre identifiant, votre mot de passe généré et votre code 2FA.',
+    successTitle: 'Connexion réussie',
+    successDescription: 'Vous êtes connecté à votre espace COFRAP Cloud.',
+    usernameLabel: 'Identifiant',
+    usernamePlaceholder: 'ex: michel.ranu',
+    passwordLabel: 'Mot de passe',
+    passwordPlaceholder: 'Votre mot de passe',
+    totpLabel: 'Code 2FA',
+    totpPlaceholder: '123456',
+    submitButton: 'Se connecter',
+    backHomeButton: "Retour à l'accueil",
+    welcomePrefix: 'Bienvenue,',
+    footerBackHome: 'Retour accueil',
+    footerExpired: 'Mot de passe expiré ?',
+    errorLocked: 'Compte temporairement bloqué après 3 tentatives. Réessayez dans 5 minutes.',
+    errorLockedCheck: 'Compte temporairement bloqué. Réessayez dans 5 minutes.',
+    errorNoAccount: 'Aucun compte activé trouvé.',
+    errorAttempts: (remaining: number) =>
+      `Connexion refusée. Tentatives restantes : ${remaining}.`,
+  },
+
+  register: {
+    badge: 'Inscription',
+    stepsAriaLabel: "Progression de l'inscription",
+    step1Label: '1 Identifiant',
+    step2Label: '2 Mot de passe',
+    step3Label: '3 2FA',
+    step4Label: '4 Connexion',
+    step1Title: 'Créer votre compte',
+    step1Description:
+      'Votre mot de passe sera généré automatiquement et transmis via un QR code à usage unique.',
+    step2Title: 'Votre mot de passe',
+    step2Description:
+      "Scannez le QR code avec un gestionnaire de mots de passe pour l’enregistrer.",
+    step3Title: 'Activer la double authentification',
+    step3Description:
+      'Scannez ce QR code avec votre application TOTP puis saisissez le code généré.',
+    usernameLabel: 'Identifiant souhaité',
+    usernamePlaceholder: 'prenom.nom',
+    generateButton: 'Générer mon mot de passe',
+    passwordQrAlt: 'QR code contenant le mot de passe généré',
+    warning: "Conservez-le maintenant : il ne sera pas affiché de nouveau.",
+    continueButton: 'Continuer vers la 2FA',
+    totpQrAlt: 'QR code pour configurer la double authentification TOTP',
+    totpLabel: 'Entrez le code à 6 chiffres',
+    totpPlaceholder: '123456',
+    activateButton: 'Vérifier et activer mon compte',
+    successTitle: 'Compte activé avec succès',
+    successMessagePrefix: 'Bienvenue,',
+    successMessageSuffix:
+      '. Votre mot de passe et votre double authentification sont opérationnels.',
+    successButton: 'Accéder à mes applicatifs',
+    footerBackHome: 'Retour accueil',
+    footerHaveAccount: 'Déjà un compte ?',
+    copyButton: 'Copier le mot de passe',
+    copiedButton: 'Mot de passe copié',
+  },
+
+  renew: {
+    badge: 'Renouvellement',
+    step1Title: "Renouveler l'accès",
+    step1Description:
+      'Vos identifiants doivent être renouvelés pour continuer à utiliser COFRAP Cloud.',
+    step2Title: 'Nouveau mot de passe',
+    step2Description: 'Scannez ou copiez votre nouveau mot de passe généré automatiquement.',
+    step3Title: 'Nouvelle double authentification',
+    step3Description:
+      'Scannez le QR code puis saisissez le code généré par votre application TOTP.',
+    warning:
+      "Vos identifiants ont expiré. Un nouveau mot de passe et une nouvelle double authentification vont être générés.",
+    renewButton: 'Renouveler mes identifiants',
+    passwordQrAlt: 'QR code contenant le nouveau mot de passe généré',
+    continueButton: 'Continuer vers la 2FA',
+    totpQrAlt: 'QR code pour configurer la nouvelle double authentification TOTP',
+    totpLabel: 'Entrez le code à 6 chiffres',
+    totpPlaceholder: '123456',
+    activateButton: 'Réactiver mon compte',
+    successTitle: 'Identifiants renouvelés',
+    successMessage: 'Votre compte est de nouveau actif.',
+    successButton: 'Retour à la connexion',
+    footerBackHome: 'Retour accueil',
+    footerLogin: 'Connexion',
+    copyButton: 'Copier le mot de passe',
+    copiedButton: 'Mot de passe copié',
+  },
+}

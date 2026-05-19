@@ -1,33 +1,42 @@
 <template>
   <AuthLayout
-    badge="Connexion"
-    :title="loginSuccess ? 'Connexion réussie' : 'Se connecter'"
-    :description="
-      loginSuccess
-        ? 'Vous êtes connecté à votre espace COFRAP Cloud.'
-        : 'Authentifiez-vous avec votre identifiant, votre mot de passe généré et votre code 2FA.'
-    "
+    :badge="t.login.badge"
+    :title="loginSuccess ? t.login.successTitle : t.login.title"
+    :description="loginSuccess ? t.login.successDescription : t.login.description"
   >
     <form v-if="!loginSuccess" class="auth-form" @submit.prevent="handleLogin">
       <div class="auth-form__group">
-        <label for="username">Identifiant</label>
-        <input id="username" v-model="form.username" type="text" placeholder="ex: michel.ranu" autocomplete="username" />
+        <label for="username">{{ t.login.usernameLabel }}</label>
+        <input
+          id="username"
+          v-model="form.username"
+          type="text"
+          :placeholder="t.login.usernamePlaceholder"
+          autocomplete="username"
+        />
       </div>
 
       <div class="auth-form__group">
-        <label for="password">Mot de passe</label>
+        <label for="password">{{ t.login.passwordLabel }}</label>
         <input
           id="password"
           v-model="form.password"
           type="password"
-          placeholder="Votre mot de passe"
+          :placeholder="t.login.passwordPlaceholder"
           autocomplete="current-password"
         />
       </div>
 
       <div class="auth-form__group">
-        <label for="totp">Code 2FA</label>
-        <input id="totp" v-model="form.totp" type="text" placeholder="123456" autocomplete="one-time-code" inputmode="numeric" />
+        <label for="totp">{{ t.login.totpLabel }}</label>
+        <input
+          id="totp"
+          v-model="form.totp"
+          type="text"
+          :placeholder="t.login.totpPlaceholder"
+          autocomplete="one-time-code"
+          inputmode="numeric"
+        />
       </div>
 
       <div aria-live="polite" aria-atomic="true">
@@ -37,11 +46,11 @@
       </div>
 
       <RouterLink v-if="isLocked" class="auth-button auth-button--secondary" to="/">
-        Retour à l'accueil
+        {{ t.login.backHomeButton }}
       </RouterLink>
 
       <button v-if="!isLocked" class="auth-button auth-button--primary" type="submit">
-        Se connecter
+        {{ t.login.submitButton }}
       </button>
     </form>
 
@@ -49,17 +58,18 @@
       <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <p>
-        Bienvenue, <strong>{{ form.username }}</strong
-        >.
+        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong>.
       </p>
 
-      <RouterLink class="auth-button auth-button--primary" to="/"> Retour à l’accueil </RouterLink>
+      <RouterLink class="auth-button auth-button--primary" to="/">
+        {{ t.login.backHomeButton }}
+      </RouterLink>
     </div>
 
     <template #footer>
       <div class="auth-footer">
-        <RouterLink to="/">Retour accueil</RouterLink>
-        <RouterLink to="/renew">Mot de passe expiré ?</RouterLink>
+        <RouterLink to="/">{{ t.login.footerBackHome }}</RouterLink>
+        <RouterLink to="/renew">{{ t.login.footerExpired }}</RouterLink>
       </div>
     </template>
   </AuthLayout>
@@ -71,8 +81,10 @@ import { useRouter } from 'vue-router'
 import * as OTPAuth from 'otpauth'
 
 import AuthLayout from '@/components/AuthLayout.vue'
+import { useLang } from '@/composables/useLang'
 
 const router = useRouter()
+const { t } = useLang()
 
 const MAX_ATTEMPTS = 3
 const LOCK_DURATION_MS = 5 * 60 * 1000
@@ -121,8 +133,7 @@ const registerFailedAttempt = () => {
   if (attempts >= MAX_ATTEMPTS) {
     saveLoginSecurity(attempts, Date.now() + LOCK_DURATION_MS)
 
-    errorMessage.value =
-      'Compte temporairement bloqué après 3 tentatives. Réessayez dans 5 minutes.'
+    errorMessage.value = t.login.errorLocked
 
     isLocked.value = true
 
@@ -131,7 +142,7 @@ const registerFailedAttempt = () => {
 
   saveLoginSecurity(attempts, null)
 
-  errorMessage.value = `Connexion refusée. Tentatives restantes : ${MAX_ATTEMPTS - attempts}.`
+  errorMessage.value = t.login.errorAttempts(MAX_ATTEMPTS - attempts)
 }
 
 const handleLogin = () => {
@@ -141,7 +152,7 @@ const handleLogin = () => {
   const security = getLoginSecurity()
 
   if (security.lockedUntil && Date.now() < security.lockedUntil) {
-    errorMessage.value = 'Compte temporairement bloqué. Réessayez dans 5 minutes.'
+    errorMessage.value = t.login.errorLockedCheck
 
     isLocked.value = true
 
@@ -151,7 +162,7 @@ const handleLogin = () => {
   const storedUser = localStorage.getItem('cofrap-user')
 
   if (!storedUser) {
-    errorMessage.value = 'Aucun compte activé trouvé.'
+    errorMessage.value = t.login.errorNoAccount
     return
   }
 
