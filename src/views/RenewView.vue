@@ -13,6 +13,8 @@
     </div>
 
     <div v-if="step === 2" class="register-panel">
+      <p class="warning-box">{{ t.renew.warning }}</p>
+
       <img :src="passwordQr" :alt="t.renew.passwordQrAlt" class="qr-image" />
 
       <div class="secret-box">
@@ -36,7 +38,7 @@
       </button>
     </div>
 
-    <div v-if="step === 3" class="register-panel">
+    <form v-if="step === 3" class="register-panel" @submit.prevent="activateRenewal">
       <img :src="totpQr" :alt="t.renew.totpQrAlt" class="qr-image" />
 
       <div class="auth-form__group">
@@ -50,10 +52,10 @@
         />
       </div>
 
-      <button class="auth-button auth-button--primary" type="button" @click="activateRenewal">
+      <button class="auth-button auth-button--primary" type="submit">
         {{ t.renew.activateButton }}
       </button>
-    </div>
+    </form>
 
     <div v-if="step === 4" class="success-panel">
       <div class="success-panel__icon" aria-hidden="true">✓</div>
@@ -77,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import QRCode from 'qrcode'
 
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -86,6 +88,13 @@ import { useLang } from '@/composables/useLang'
 const { t } = useLang()
 
 const step = ref(1)
+
+const focusTitle = async () => {
+  await nextTick()
+  document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+}
+
+watch(step, focusTitle)
 const password = ref('')
 const passwordQr = ref('')
 const totpSecret = ref('')

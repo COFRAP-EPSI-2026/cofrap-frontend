@@ -45,6 +45,8 @@
     </form>
 
     <div v-if="step === 2" class="register-panel">
+      <p class="warning-box">{{ t.register.warning }}</p>
+
       <img :src="passwordQr" :alt="t.register.passwordQrAlt" class="qr-image" />
 
       <div class="secret-box">
@@ -63,14 +65,12 @@
         </button>
       </div>
 
-      <p class="warning-box">{{ t.register.warning }}</p>
-
       <button class="auth-button auth-button--primary" type="button" @click="step = 3">
         {{ t.register.continueButton }}
       </button>
     </div>
 
-    <div v-if="step === 3" class="register-panel">
+    <form v-if="step === 3" class="register-panel" @submit.prevent="activateAccount">
       <img :src="totpQr" :alt="t.register.totpQrAlt" class="qr-image" />
 
       <div class="auth-form__group">
@@ -84,10 +84,10 @@
         />
       </div>
 
-      <button class="auth-button auth-button--primary" type="button" @click="activateAccount">
+      <button class="auth-button auth-button--primary" type="submit">
         {{ t.register.activateButton }}
       </button>
-    </div>
+    </form>
 
     <div v-if="step === 4" class="success-panel">
       <div class="success-panel__icon" aria-hidden="true">✓</div>
@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
 import QRCode from 'qrcode'
 
@@ -124,6 +124,13 @@ import { useLang } from '@/composables/useLang'
 const { t } = useLang()
 
 const step = ref(1)
+
+const focusTitle = async () => {
+  await nextTick()
+  document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+}
+
+watch(step, focusTitle)
 const username = ref('')
 const totp = ref('')
 

@@ -1,4 +1,6 @@
 export const fr = {
+  skipLink: 'Passer au contenu principal',
+
   passwordInput: {
     show: 'Afficher le mot de passe',
     hide: 'Masquer le mot de passe',

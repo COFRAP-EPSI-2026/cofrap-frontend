@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import * as OTPAuth from 'otpauth'
 
@@ -98,6 +98,13 @@ const form = reactive({
 const errorMessage = ref('')
 const isLocked = ref(false)
 const loginSuccess = ref(false)
+
+const focusTitle = async () => {
+  await nextTick()
+  document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+}
+
+watch(loginSuccess, (val) => { if (val) focusTitle() })
 
 const getLoginSecurity = () => {
   const storedSecurity = localStorage.getItem('cofrap-login-security')
