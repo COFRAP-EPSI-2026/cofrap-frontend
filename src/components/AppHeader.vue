@@ -1,10 +1,14 @@
 <template>
   <header class="app-header">
     <div class="app-header__brand">
-      <div class="app-header__logo">C</div>
-      <span class="app-header__name">COFRAP</span>
-      <span class="app-header__separator">·</span>
-      <span class="app-header__subtitle">Cloud Identity</span>
+      <img
+        src="/logo-cofrap-v.svg"
+        alt="COFRAP"
+        class="app-header__logo-img"
+        width="147"
+        height="40"
+      />
+      <span class="app-header__subtitle">{{ t.header.subtitle }}</span>
     </div>
 
     <div role="toolbar" aria-label="Actions de la page" class="app-header__actions">

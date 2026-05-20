@@ -25,6 +25,7 @@ export const en = {
   },
 
   header: {
+    subtitle: 'French Company for Professional Application Development',
     langButtonLabel: 'Switch to French',
     darkModeButton: 'Enable dark mode',
     lightModeButton: 'Enable light mode',

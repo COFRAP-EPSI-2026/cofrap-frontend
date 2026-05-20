@@ -25,6 +25,7 @@ export const fr = {
   },
 
   header: {
+    subtitle: "Compagnie Française de Réalisation d'Applicatifs Professionnels",
     langButtonLabel: 'Switch to English',
     darkModeButton: 'Activer le mode sombre',
     lightModeButton: 'Activer le mode clair',
