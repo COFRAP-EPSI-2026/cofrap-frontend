@@ -102,6 +102,7 @@ const form = reactive({
   totp: '',
 })
 
+const loading = ref(false)
 const errorMessage = ref('')
 const isLocked = ref(false)
 const loginSuccess = ref(false)
