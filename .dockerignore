@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.gitignore
+.github
+.vscode
+.yarn
+docs
+deploy
+README.md
+README.en.md
+*.log
+.env
+.env.*
