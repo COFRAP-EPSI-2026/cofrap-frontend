@@ -2,13 +2,16 @@
   <header class="app-header">
     <div class="app-header__brand">
       <img
-        src="/logo-cofrap-v.svg"
+        src="/logo-cofrap.svg"
         alt="COFRAP"
         class="app-header__logo-img"
         width="147"
         height="40"
       />
-      <span class="app-header__subtitle">{{ t.header.subtitle }}</span>
+      <div class="app-header__brand-text">
+        <span class="app-header__title">{{ t.header.title }}</span>
+        <span class="app-header__subtitle">{{ t.header.subtitle }}</span>
+      </div>
     </div>
 
     <div role="toolbar" aria-label="Actions de la page" class="app-header__actions">

@@ -130,15 +130,14 @@ input {
 
   &__brand {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 12px;
     flex-shrink: 0;
-    padding-bottom: 4px;
   }
 
   &__logo-img {
-    height: 85px;
-    width: 85px;
+    height: 55px;
+    width: 70px;
     object-fit: contain;
     flex-shrink: 0;
 
@@ -150,6 +149,22 @@ input {
     @media (max-width: 600px) {
       height: 36px;
     }
+  }
+
+  &__brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  &__title {
+    font-family: 'Montserrat', 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text);
   }
 
   &__separator {
@@ -165,11 +180,7 @@ input {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--color-text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: auto;
-    padding-bottom: 15px;
+    white-space: pre-line;
   }
 
   &__actions {

@@ -25,7 +25,8 @@ export const en = {
   },
 
   header: {
-    subtitle: 'French Company for Professional Application Development',
+    title: 'COFRAP',
+    subtitle: 'French Company for Professional\nApplication Development',
     langButtonLabel: 'Switch to French',
     darkModeButton: 'Enable dark mode',
     lightModeButton: 'Enable light mode',
