@@ -32,6 +32,7 @@ Vite starts a dev server with **HMR** (hot module replacement) — by default on
 | `yarn build`       | Type checking (`vue-tsc`) **then** production build (`dist/`)            |
 | `yarn build-only`  | Production build without type checking                                  |
 | `yarn type-check`  | TypeScript checking only (`vue-tsc --build`)                            |
+| `yarn lint`        | ESLint analysis of `.ts` / `.vue` (`yarn lint --fix` to auto-fix)       |
 | `yarn preview`     | Serves the already-built `dist/` locally (check the prod rendering)     |
 | `yarn format`      | Formats `src/` with Prettier                                            |
 | `yarn format:check`| Checks formatting without modifying files (used by CI)                  |
@@ -40,6 +41,7 @@ Vite starts a dev server with **HMR** (hot module replacement) — by default on
 
 - **TypeScript** everywhere — `.vue` files use `<script setup lang="ts">`.
 - Vue 3 **Composition API**; cross-cutting logic lives in `src/composables/`.
+- **ESLint** (`eslint.config.js` — Vue + TypeScript rules) for code quality. Run `yarn lint`.
 - **Prettier** for formatting (`.prettierrc.json`). Run `yarn format` before committing.
 - Import alias **`@`** → `src/` (configured in `vite.config.ts` and `tsconfig`). E.g. `import HomeView from '@/views/HomeView.vue'`.
 - Displayed strings go through the language files `src/lang/{fr,en}.ts` — never hard-code text in components.
@@ -47,7 +49,7 @@ Vite starts a dev server with **HMR** (hot module replacement) — by default on
 ## Typical dev cycle
 
 1. `yarn dev` and code.
-2. `yarn format` for formatting.
+2. `yarn lint` + `yarn format` — code quality and formatting.
 3. `yarn type-check` — no type errors.
 4. `yarn build` — the production build passes.
 5. Commit + PR.
@@ -105,15 +107,17 @@ docker run --rm -p 8080:8080 cofrap-frontend:dev
 
 ## Continuous integration
 
-Every push and every PR to `main` triggers `.github/workflows/ci.yml`:
+Every push and every PR to `main` triggers `.github/workflows/ci.yml` —
+a `verify` job then a `docker` job:
 
 1. `yarn install --frozen-lockfile`
-2. `yarn format:check` — Prettier formatting check
-3. `yarn type-check` — `vue-tsc`
-4. `yarn build-only` — production build
-5. Docker image build (no push)
+2. `yarn lint` — ESLint analysis
+3. `yarn format:check` — Prettier formatting check
+4. `yarn type-check` — `vue-tsc`
+5. `yarn build-only` — production build (publishes the `dist/` artifact)
+6. Docker image build (no push)
 
-Reproduce CI locally: `yarn format:check && yarn type-check && yarn build`.
+Reproduce CI locally: `yarn lint && yarn format:check && yarn type-check && yarn build`.
 
 ## Releases (Release Please)
 

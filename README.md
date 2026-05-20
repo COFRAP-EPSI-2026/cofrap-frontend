@@ -139,7 +139,7 @@ Documentation bilingue : [`docs/fr/`](docs/fr/README.md) · [`docs/en/`](docs/en
 
 1. Fork + branche feature.
 2. `yarn install`, puis code avec `yarn dev`.
-3. `yarn format` + `yarn type-check` + `yarn build` (tout passe).
+3. `yarn lint` + `yarn format` + `yarn type-check` + `yarn build` (tout passe).
 4. Commits [Conventional](https://www.conventionalcommits.org/) (`feat:`, `fix:`…) — Release Please s'en sert pour le versionnement automatique.
 5. PR vers `main` ; la CI rejoue lint + type-check + build.
 
