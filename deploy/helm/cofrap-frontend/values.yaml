@@ -1,0 +1,50 @@
+# Valeurs par défaut du chart `cofrap-frontend`.
+# Override via `helm install --set` ou `-f values-prod.yaml`.
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+# -- Image nginx servant le build statique Vite.
+image:
+  repository: ghcr.io/cofrap-epsi-2026/cofrap-frontend
+  tag: "2026.1.0"
+  pullPolicy: IfNotPresent
+
+# -- Service interne (le pod nginx-unprivileged écoute sur 8080).
+service:
+  type: ClusterIP
+  port: 80
+
+# -- Ingress : expose le frontend hors du cluster.
+ingress:
+  enabled: true
+  # Ingress controller cible. Traefik est le choix retenu (inclus nativement dans K3s).
+  # Mettre "" pour utiliser l'IngressClass par défaut du cluster.
+  className: traefik
+  host: cofrap.example.com
+  path: /
+  pathType: Prefix
+  # Annotations spécifiques à l'ingress controller (ex. middlewares Traefik). Vide = défaut.
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: ""
+
+# -- Ressources (PoC : empreinte minimale).
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# -- Sonde de santé (endpoint /healthz exposé par nginx.conf).
+probes:
+  path: /healthz
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

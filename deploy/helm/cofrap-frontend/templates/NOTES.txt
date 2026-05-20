@@ -1,0 +1,29 @@
+
+✓ Frontend COFRAP déployé dans le namespace `{{ .Release.Namespace }}`.
+
+Composants :
+  • Deployment `{{ include "cofrap-frontend.fullname" . }}` ({{ .Values.replicaCount }} réplique(s), image {{ .Values.image.repository }}:{{ .Values.image.tag }})
+  • Service `{{ include "cofrap-frontend.fullname" . }}` ({{ .Values.service.type }}, port {{ .Values.service.port }})
+{{- if .Values.ingress.enabled }}
+  • Ingress → http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}{{ .Values.ingress.path }}
+{{- end }}
+
+----------------------------------------------------------------------
+Vérifier le déploiement
+----------------------------------------------------------------------
+
+    kubectl -n {{ .Release.Namespace }} get deploy,svc,ingress,pods -l app.kubernetes.io/name=cofrap-frontend
+
+{{ if .Values.ingress.enabled -}}
+Accès via l'Ingress : http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}
+(ajouter `{{ .Values.ingress.host }}` à /etc/hosts si pas de DNS, pointant vers l'IP de l'ingress controller)
+{{- else -}}
+Ingress désactivé — accès en port-forward :
+
+    kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "cofrap-frontend.fullname" . }} 8080:{{ .Values.service.port }}
+    → http://127.0.0.1:8080
+{{- end }}
+
+----------------------------------------------------------------------
+Documentation : https://github.com/COFRAP-EPSI-2026/cofrap-frontend/blob/main/docs/fr/installation.md
+----------------------------------------------------------------------
