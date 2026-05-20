@@ -93,7 +93,12 @@
         </p>
       </div>
 
-      <button class="auth-button auth-button--primary" type="submit" :disabled="loading" :class="{ 'auth-button--loading': loading }">
+      <button
+        class="auth-button auth-button--primary"
+        type="submit"
+        :disabled="loading"
+        :class="{ 'auth-button--loading': loading }"
+      >
         {{ t.register.activateButton }}
       </button>
     </form>
@@ -159,7 +164,6 @@ const totpQr = ref('')
 // n'expose pas d'endpoint de validation à l'inscription).
 const totpInstance = ref<OTPAuth.TOTP | null>(null)
 
-const loading = ref(false)
 const apiError = ref('')
 const totpError = ref('')
 

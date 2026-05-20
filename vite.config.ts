@@ -16,8 +16,10 @@ export default defineConfig({
     },
   },
   server: {
-    // Liaison backend en dev : /api/* est proxifié vers le gateway OpenFaaS.
-    // Démarrer au préalable : kubectl -n openfaas port-forward svc/gateway 8080:8080
+    // Liaison backend en dev : /api/* est proxifié vers le gateway sur :8080.
+    // Démarrer au préalable le backend, au choix :
+    //   - docker compose up -d --build  (stack locale du dépôt backend, recommandé)
+    //   - kubectl -n openfaas port-forward svc/gateway 8080:8080  (cluster OpenFaaS)
     // Le `rewrite` strippe /api → le gateway reçoit /function/<name>.
     proxy: {
       '/api': {
