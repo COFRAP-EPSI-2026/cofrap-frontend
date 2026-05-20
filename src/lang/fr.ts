@@ -13,7 +13,9 @@ export const fr = {
     reduceMotion: 'Réduire les animations',
     enhancedFocus: 'Focus clavier renforcé',
     increasedSpacing: 'Espacement augmenté',
-    readableFont: 'Police plus lisible',
+    readableFont: 'Police dyslexie (OpenDyslexic)',
+    audioReading: 'Lecture audio',
+    audioReadingActive: 'Lecture audio active — survolez ou naviguez au clavier',
     reset: 'Réinitialiser',
   },
 

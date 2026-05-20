@@ -871,6 +871,33 @@ input {
   }
 }
 
+// ── A11y audio hint banner ─────────────────────────────────────────────────────
+
+.a11y-audio-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-primary-ring);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.audio-hint-enter-active,
+.audio-hint-leave-active {
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.audio-hint-enter-from,
+.audio-hint-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
 // ── A11y reset button ──────────────────────────────────────────────────────────
 
 .a11y-reset {
