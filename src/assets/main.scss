@@ -710,13 +710,17 @@ input {
 // ── QR image — fond toujours blanc pour la lisibilité par caméra ──────────────
 
 .qr-image {
-  width: 160px;
-  height: 160px;
+  width: 240px;
+  height: 240px;
   margin: 0 auto;
   padding: 12px;
   border-radius: 16px;
   background: #ffffff;
   border: 1px dashed var(--color-border-input);
+  // Mise à l'échelle sans lissage : les modules du QR restent nets — sinon le
+  // QR devient flou et les applications d'authentification refusent de le scanner.
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 
 // ── Error box ─────────────────────────────────────────────────────────────────
