@@ -60,6 +60,20 @@ yarn preview
 
 `yarn preview` serves `dist/` on a local port — this is the exact content nginx will serve in production.
 
+## Working with the backend locally
+
+The frontend calls the backend via `/api` (a relative path). In dev, the Vite server proxies `/api` to the OpenFaaS gateway (see `server.proxy` in `vite.config.ts`, target `http://127.0.0.1:8080`).
+
+For this to work, expose the OpenFaaS gateway on port 8080 **before** `yarn dev`:
+
+```bash
+kubectl -n openfaas port-forward svc/gateway 8080:8080
+```
+
+Then `yarn dev`: the frontend's calls to `/api/function/<name>` reach the gateway. No CORS (Vite serves everything from the same origin `localhost:5173`).
+
+If the port-forward is not running, the app still loads but API calls fail — that is expected.
+
 ## Test the Docker image locally
 
 ```bash
@@ -67,6 +81,8 @@ docker build -t cofrap-frontend:dev .
 docker run --rm -p 8080:8080 cofrap-frontend:dev
 # → http://127.0.0.1:8080
 ```
+
+> With no cluster behind it, the container's `/api` proxy won't reach a gateway — only the SPA is testable this way.
 
 → Image + deployment details: [`deployment.md`](deployment.md).
 

@@ -48,7 +48,12 @@
         {{ t.login.backHomeButton }}
       </RouterLink>
 
-      <button v-if="!isLocked" class="auth-button auth-button--primary" type="submit" :disabled="loading" :class="{ 'auth-button--loading': loading }">
+      <button
+        v-if="!isLocked"
+        class="auth-button auth-button--primary"
+        type="submit"
+        :disabled="loading"
+      >
         {{ t.login.submitButton }}
       </button>
     </form>
@@ -57,7 +62,8 @@
       <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <p>
-        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong>.
+        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong
+        >.
       </p>
 
       <RouterLink class="auth-button auth-button--primary" to="/">
@@ -77,10 +83,11 @@
 <script setup lang="ts">
 import { nextTick, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import * as OTPAuth from 'otpauth'
+import { AxiosError } from 'axios'
 
 import AuthLayout from '@/components/AuthLayout.vue'
 import PasswordInput from '@/components/PasswordInput.vue'
+import { authenticate } from '@/components/openfaasApi'
 import { useLang } from '@/composables/useLang'
 
 const router = useRouter()
@@ -99,39 +106,34 @@ const loading = ref(false)
 const errorMessage = ref('')
 const isLocked = ref(false)
 const loginSuccess = ref(false)
+const loading = ref(false)
 
 const focusTitle = async () => {
   await nextTick()
   document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
 }
 
-watch(loginSuccess, (val) => { if (val) focusTitle() })
-
-watch(() => form.totp, (val) => {
-  if (/^\d{6}$/.test(val)) handleLogin()
+watch(loginSuccess, (val) => {
+  if (val) focusTitle()
 })
 
-const getLoginSecurity = () => {
+// --- Verrouillage anti-bruteforce (côté client) ------------------------------
+// Le backend `authenticate-user` valide réellement les identifiants ; ce
+// compteur local fige juste l'UI après 3 échecs consécutifs pour décourager
+// les tentatives répétées depuis ce navigateur.
+
+const getLoginSecurity = (): { attempts: number; lockedUntil: number | null } => {
   const storedSecurity = localStorage.getItem('cofrap-login-security')
 
   if (!storedSecurity) {
-    return {
-      attempts: 0,
-      lockedUntil: null,
-    }
+    return { attempts: 0, lockedUntil: null }
   }
 
   return JSON.parse(storedSecurity)
 }
 
 const saveLoginSecurity = (attempts: number, lockedUntil: number | null) => {
-  localStorage.setItem(
-    'cofrap-login-security',
-    JSON.stringify({
-      attempts,
-      lockedUntil,
-    }),
-  )
+  localStorage.setItem('cofrap-login-security', JSON.stringify({ attempts, lockedUntil }))
 }
 
 const resetLoginSecurity = () => {
@@ -144,82 +146,58 @@ const registerFailedAttempt = () => {
 
   if (attempts >= MAX_ATTEMPTS) {
     saveLoginSecurity(attempts, Date.now() + LOCK_DURATION_MS)
-
     errorMessage.value = t.login.errorLocked
-
     isLocked.value = true
-
     return
   }
 
   saveLoginSecurity(attempts, null)
-
   errorMessage.value = t.login.errorAttempts(MAX_ATTEMPTS - attempts)
 }
 
+/** Authentifie via le backend (identifiant + mot de passe + code TOTP). */
 const handleLogin = async () => {
-  if (loading.value) return
-  loading.value = true
-  await nextTick() // laisser Vue rendre le spinner avant la logique synchrone
   errorMessage.value = ''
   isLocked.value = false
 
   const security = getLoginSecurity()
-
   if (security.lockedUntil && Date.now() < security.lockedUntil) {
     errorMessage.value = t.login.errorLockedCheck
-
     isLocked.value = true
-
-    loading.value = false
     return
   }
 
-  const storedUser = localStorage.getItem('cofrap-user')
+  if (!form.username.trim() || !form.password || !form.totp.trim() || loading.value) return
 
-  if (!storedUser) {
-    errorMessage.value = t.login.errorNoAccount
-    loading.value = false
-    return
-  }
+  loading.value = true
+  try {
+    const res = await authenticate(form.username.trim(), form.password, form.totp.trim())
 
-  const user = JSON.parse(storedUser)
+    // Compte expiré (rotation 6 mois) → renouvellement obligatoire.
+    if (res.expired) {
+      resetLoginSecurity()
+      router.push('/renew')
+      return
+    }
 
-  if (user.expired) {
-    loading.value = false
-    router.push('/renew')
-    return
-  }
+    if (res.authenticated) {
+      resetLoginSecurity()
+      loginSuccess.value = true
+      return
+    }
 
-  if (form.username !== user.username || form.password !== user.password) {
+    // Réponse 200 sans `authenticated` ni `expired` : traité comme un échec.
     registerFailedAttempt()
+  } catch (error) {
+    // Panne serveur / réseau : on n'incrémente pas le compteur d'échecs.
+    if (error instanceof AxiosError && (!error.response || error.response.status >= 500)) {
+      errorMessage.value = t.login.errorServer
+    } else {
+      // 401 / 404 / 409 / 422 → identifiants refusés.
+      registerFailedAttempt()
+    }
+  } finally {
     loading.value = false
-    return
   }
-
-  const totp = new OTPAuth.TOTP({
-    issuer: 'COFRAP',
-    label: user.username,
-    algorithm: 'SHA1',
-    digits: 6,
-    period: 30,
-    secret: OTPAuth.Secret.fromBase32(user.totpSecret),
-  })
-
-  const delta = totp.validate({
-    token: form.totp,
-    window: 1,
-  })
-
-  if (delta === null) {
-    registerFailedAttempt()
-    loading.value = false
-    return
-  }
-
-  resetLoginSecurity()
-
-  loginSuccess.value = true
-  loading.value = false
 }
 </script>

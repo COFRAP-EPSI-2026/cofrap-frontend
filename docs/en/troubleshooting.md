@@ -28,7 +28,7 @@ Check that `yarn build` actually produced `dist/` during the image build. Test: 
 
 ### Reloading `/login` → nginx 404
 
-The SPA fallback is not active. Check that [`nginx.conf`](../../nginx.conf) contains `try_files $uri $uri/ /index.html;` and that it is copied into the image (`COPY nginx.conf /etc/nginx/conf.d/default.conf`).
+The SPA fallback is not active. Check that [`default.conf.template`](../../default.conf.template) contains `try_files $uri $uri/ /index.html;` and that it is copied into the image (`COPY default.conf.template /etc/nginx/templates/default.conf.template`).
 
 ### Pod in `ImagePullBackOff`
 
@@ -47,4 +47,4 @@ Check the logs: `kubectl -n cofrap logs -l app.kubernetes.io/name=cofrap-fronten
 
 ### The probes fail
 
-Probes hit `/healthz`. That endpoint is defined in `nginx.conf` (`location = /healthz`). If it was removed, the probes fail — restore it or adjust `probes.path` in the chart values.
+Probes hit `/healthz`. That endpoint is defined in `default.conf.template` (`location = /healthz`). If it was removed, the probes fail — restore it or adjust `probes.path` in the chart values.

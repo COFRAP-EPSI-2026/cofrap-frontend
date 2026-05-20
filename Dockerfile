@@ -19,8 +19,12 @@ LABEL org.opencontainers.image.source="https://github.com/COFRAP-EPSI-2026/cofra
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.title="cofrap-frontend"
 
-# Config nginx : SPA fallback (vue-router en history mode) + /healthz
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Config nginx en template : `envsubst` substitue ${OPENFAAS_GATEWAY} au démarrage.
+# NGINX_ENVSUBST_FILTER limite la substitution aux variables OPENFAAS_* — les
+# variables nginx natives ($uri, $host, ...) sont ainsi préservées.
+ENV NGINX_ENVSUBST_FILTER="^OPENFAAS_" \
+    OPENFAAS_GATEWAY="gateway.openfaas.svc.cluster.local:8080"
+COPY default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # nginx-unprivileged écoute sur 8080 et tourne en UID 101 (non-root)

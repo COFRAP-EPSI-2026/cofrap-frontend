@@ -4,36 +4,44 @@
     :title="stepContent.title"
     :description="stepContent.description"
   >
-    <div v-if="step === 1" class="register-panel">
+    <form v-if="step === 1" class="register-panel" @submit.prevent="renewCredentials">
       <p class="warning-box">{{ t.renew.warning }}</p>
 
-      <button class="auth-button auth-button--primary" type="button" :disabled="loading" :class="{ 'auth-button--loading': loading }" @click="renewCredentials">
+      <div class="auth-form__group">
+        <label for="username">{{ t.renew.usernameLabel }}</label>
+        <input
+          id="username"
+          v-model="username"
+          type="text"
+          :placeholder="t.renew.usernamePlaceholder"
+          autocomplete="username"
+        />
+      </div>
+
+      <div aria-live="polite" aria-atomic="true">
+        <p v-if="apiError" class="error-box" role="alert">{{ apiError }}</p>
+      </div>
+
+      <button class="auth-button auth-button--primary" type="submit" :disabled="loading">
         {{ t.renew.renewButton }}
       </button>
-    </div>
+    </form>
 
     <div v-if="step === 2" class="register-panel">
       <p class="warning-box">{{ t.renew.warning }}</p>
 
       <img :src="passwordQr" :alt="t.renew.passwordQrAlt" class="qr-image" />
 
-      <div class="secret-box">
-        <span>{{ password }}</span>
-
-        <button
-          type="button"
-          :aria-label="copied ? t.renew.copiedButton : t.renew.copyButton"
-          @click="copyPassword"
-        >
-          <span v-if="copied">
-            <span class="copy-check">✓</span>
-            Copié
-          </span>
-          <span v-else>Copier</span>
-        </button>
+      <div aria-live="polite" aria-atomic="true">
+        <p v-if="apiError" class="error-box" role="alert">{{ apiError }}</p>
       </div>
 
-      <button class="auth-button auth-button--primary" type="button" @click="step = 3">
+      <button
+        class="auth-button auth-button--primary"
+        type="button"
+        :disabled="loading"
+        @click="goToTotp"
+      >
         {{ t.renew.continueButton }}
       </button>
     </div>
@@ -88,9 +96,10 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import QRCode from 'qrcode'
+import * as OTPAuth from 'otpauth'
 
 import AuthLayout from '@/components/AuthLayout.vue'
+import { generatePassword, generate2fa, apiErrorMessage } from '@/components/openfaasApi'
 import { useLang } from '@/composables/useLang'
 import { useA11y } from '@/composables/useA11y'
 
@@ -100,11 +109,6 @@ const { audioReading } = useA11y()
 const step = ref(1)
 const loading = ref(false)
 
-const focusTitle = async () => {
-  await nextTick()
-  document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
-}
-
 watch(step, async (newStep) => {
   await nextTick()
   if (newStep === 3) {
@@ -113,16 +117,20 @@ watch(step, async (newStep) => {
     document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
   }
 })
-const password = ref('')
-const passwordQr = ref('')
-const totpSecret = ref('')
-const totpQr = ref('')
+
+const username = ref('')
 const totp = ref('')
 
-watch(totp, (val) => {
-  if (step.value === 3 && /^\d{6}$/.test(val)) activateRenewal()
-})
-const copied = ref(false)
+// QR codes renvoyés par le backend (data URL prête pour <img src>).
+const passwordQr = ref('')
+const totpQr = ref('')
+
+// Instance TOTP reconstruite depuis l'`otpauth_uri` du backend — sert à
+// vérifier côté client que l'utilisateur a bien scanné le nouveau QR.
+const totpInstance = ref<OTPAuth.TOTP | null>(null)
+
+const loading = ref(false)
+const apiError = ref('')
 const totpError = ref('')
 
 const stepContent = computed(() => {
@@ -132,83 +140,52 @@ const stepContent = computed(() => {
   return { title: '', description: '' }
 })
 
-const generateSecurePassword = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-  return Array.from({ length: 24 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
-}
-
-const generateTotpSecret = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
-  return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
-}
-
+/** Étape 1 → le backend régénère le mot de passe et renvoie son QR. */
 const renewCredentials = async () => {
-  const storedUser = localStorage.getItem('cofrap-user')
-
-  if (!storedUser) return
-
+  if (!username.value.trim() || loading.value) return
+  apiError.value = ''
   loading.value = true
-
-  const user = JSON.parse(storedUser)
-
-  password.value = generateSecurePassword()
-  totpSecret.value = generateTotpSecret()
-
-  passwordQr.value = await QRCode.toDataURL(`PASSWORD:${user.username}:${password.value}`)
-
-  totpQr.value = await QRCode.toDataURL(
-    `otpauth://totp/COFRAP:${user.username}?secret=${totpSecret.value}&issuer=COFRAP`,
-  )
-
-  step.value = 2
-  loading.value = false
+  try {
+    const res = await generatePassword(username.value.trim())
+    passwordQr.value = `data:image/png;base64,${res.qrcode_png_base64}`
+    step.value = 2
+  } catch (error) {
+    apiError.value = apiErrorMessage(error)
+  } finally {
+    loading.value = false
+  }
 }
 
-const activateRenewal = async () => {
+/** Étape 2 → 3 : le backend régénère le secret TOTP et renvoie son QR. */
+const goToTotp = async () => {
   if (loading.value) return
+  apiError.value = ''
   loading.value = true
-  await nextTick()
-  totpError.value = ''
+  try {
+    const res = await generate2fa(username.value.trim())
+    totpQr.value = `data:image/png;base64,${res.qrcode_png_base64}`
+    totpInstance.value = OTPAuth.URI.parse(res.otpauth_uri) as OTPAuth.TOTP
+    step.value = 3
+  } catch (error) {
+    apiError.value = apiErrorMessage(error)
+  } finally {
+    loading.value = false
+  }
+}
 
-  if (!totp.value.trim()) {
+/** Étape 3 : vérifie le code TOTP saisi côté client (confirme le scan). */
+const activateRenewal = () => {
+  totpError.value = ''
+  if (!totpInstance.value) return
+
+  const delta = totpInstance.value.validate({ token: totp.value, window: 1 })
+  if (delta === null) {
     totpError.value = t.renew.totpError
     loading.value = false
     return
   }
 
-  const storedUser = localStorage.getItem('cofrap-user')
-  if (!storedUser) {
-    loading.value = false
-    return
-  }
-
-  const user = JSON.parse(storedUser)
-
-  localStorage.setItem(
-    'cofrap-user',
-    JSON.stringify({
-      ...user,
-      password: password.value,
-      totpSecret: totpSecret.value,
-      createdAt: Date.now(),
-      expired: false,
-    }),
-  )
-
   step.value = 4
   loading.value = false
-}
-
-const copyPassword = async () => {
-  await navigator.clipboard.writeText(password.value)
-  copied.value = true
-  if (audioReading.value && window.speechSynthesis) {
-    const lang = document.documentElement.lang === 'fr' ? 'fr-FR' : 'en-US'
-    const msg = lang === 'fr-FR' ? 'Mot de passe copié' : 'Password copied'
-    const u = new SpeechSynthesisUtterance(msg)
-    u.lang = lang
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
-  }
 }
 </script>

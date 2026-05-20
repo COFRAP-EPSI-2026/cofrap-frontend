@@ -982,7 +982,9 @@ input {
     height: 14px;
     border-radius: 50%;
     background: var(--color-text-muted);
-    transition: transform 0.2s, background-color 0.2s;
+    transition:
+      transform 0.2s,
+      background-color 0.2s;
   }
 }
 
@@ -1004,7 +1006,9 @@ input {
 
 .audio-hint-enter-active,
 .audio-hint-leave-active {
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 }
 
 .audio-hint-enter-from,

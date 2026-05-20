@@ -30,7 +30,6 @@
 
         <!-- Corps -->
         <div class="a11y-panel__body">
-
           <!-- Taille du texte -->
           <div class="a11y-font-size-section">
             <p class="a11y-section-label">{{ t.a11y.fontSize }}</p>
@@ -69,7 +68,6 @@
           </div>
 
           <div class="a11y-list">
-
             <!-- Contraste renforcé -->
             <div class="a11y-row">
               <label class="a11y-row__label" for="toggle-contrast">
@@ -177,7 +175,6 @@
                 <span class="a11y-switch__thumb" />
               </button>
             </div>
-
           </div>
 
           <!-- Bandeau actif lecture audio -->
@@ -193,7 +190,6 @@
             <RotateCcw :size="14" aria-hidden="true" />
             {{ t.a11y.reset }}
           </button>
-
         </div>
       </div>
     </Transition>
@@ -202,7 +198,17 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
-import { Accessibility, AlignJustify, Keyboard, RotateCcw, SunMoon, Type, Volume2, X, Zap } from 'lucide-vue-next'
+import {
+  Accessibility,
+  AlignJustify,
+  Keyboard,
+  RotateCcw,
+  SunMoon,
+  Type,
+  Volume2,
+  X,
+  Zap,
+} from 'lucide-vue-next'
 import { useLang } from '@/composables/useLang'
 import { useA11y } from '@/composables/useA11y'
 
@@ -210,7 +216,16 @@ const props = defineProps<{ open: boolean }>()
 defineEmits<{ close: [] }>()
 
 const { t } = useLang()
-const { fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, audioReading, reset } = useA11y()
+const {
+  fontSize,
+  highContrast,
+  reduceMotion,
+  enhancedFocus,
+  increasedSpacing,
+  readableFont,
+  audioReading,
+  reset,
+} = useA11y()
 
 const panelRef = ref<HTMLElement | null>(null)
 const closeRef = ref<HTMLElement | null>(null)
