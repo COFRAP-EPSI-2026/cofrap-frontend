@@ -1,20 +1,25 @@
 // ── CSS Custom Properties ─────────────────────────────────────────────────────
 
 :root {
+  // Palette COFRAP — extraite du logo
+  // Bleu marine foncé  : #1a3560
+  // Bleu moyen         : #1c52a0
+  // Rouge              : #c41c1c
+
   --color-bg: #f4f5f7;
   --color-surface: #ffffff;
-  --color-surface-subtle: #f8fafc;
-  --color-border: #e5e7eb;
-  --color-border-input: #cbd5e1;
+  --color-surface-subtle: #f0f4f9;
+  --color-border: #dce4ee;
+  --color-border-input: #b8c8df;
   --color-text: #111827;
-  --color-text-strong: #0f172a;
-  --color-text-muted: #475569;
-  --color-text-faint: #6b7280;
-  --color-primary: #1d4ed8;
-  --color-primary-btn: #2448d8;
-  --color-primary-ring: rgb(29 78 216 / 12%);
-  --color-badge-bg: #e8efff;
-  --color-badge-text: #1d4ed8;
+  --color-text-strong: #1a3560;
+  --color-text-muted: #455572;
+  --color-text-faint: #6b7a94;
+  --color-primary: #1c52a0;
+  --color-primary-btn: #1a3560;
+  --color-primary-ring: rgb(28 82 160 / 12%);
+  --color-badge-bg: #e4ecf8;
+  --color-badge-text: #1c52a0;
   --color-error-bg: #fef2f2;
   --color-error-border: #fca5a5;
   --color-error-text: #991b1b;
@@ -24,34 +29,34 @@
   --color-success-bg: #dcfce7;
   --color-success-text: #15803d;
   --color-copy-check: #22c55e;
-  --color-shadow: rgb(15 23 42 / 10%);
+  --color-shadow: rgb(26 53 96 / 12%);
 }
 
 [data-theme='dark'] {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-subtle: #162032;
-  --color-border: #334155;
-  --color-border-input: #475569;
-  --color-text: #f1f5f9;
-  --color-text-strong: #f8fafc;
-  --color-text-muted: #94a3b8;
-  --color-text-faint: #94a3b8;
-  --color-primary: #60a5fa;
-  --color-primary-btn: #2563eb;
-  --color-primary-ring: rgb(59 130 246 / 20%);
-  --color-badge-bg: #1e3a8a;
-  --color-badge-text: #93c5fd;
-  --color-error-bg: #450a0a;
-  --color-error-border: #991b1b;
+  --color-bg: #0d1a2e;
+  --color-surface: #162440;
+  --color-surface-subtle: #101e36;
+  --color-border: #243d60;
+  --color-border-input: #2e4e78;
+  --color-text: #e8eef6;
+  --color-text-strong: #f0f4fa;
+  --color-text-muted: #8ea6c8;
+  --color-text-faint: #6882a4;
+  --color-primary: #5b93d8;
+  --color-primary-btn: #1c52a0;
+  --color-primary-ring: rgb(91 147 216 / 20%);
+  --color-badge-bg: #1a3560;
+  --color-badge-text: #7fb3e8;
+  --color-error-bg: #2d0a0a;
+  --color-error-border: #7f1d1d;
   --color-error-text: #fca5a5;
-  --color-warning-bg: #4c0519;
-  --color-warning-border: #e11d48;
+  --color-warning-bg: #2d0a14;
+  --color-warning-border: #c41c1c;
   --color-warning-text: #fda4af;
   --color-success-bg: #052e16;
   --color-success-text: #86efac;
   --color-copy-check: #4ade80;
-  --color-shadow: rgb(0 0 0 / 40%);
+  --color-shadow: rgb(0 0 0 / 50%);
 }
 
 // ── Skip link ─────────────────────────────────────────────────────────────────
@@ -86,7 +91,7 @@
 body {
   margin: 0;
   font-family:
-    Inter,
+    'Montserrat',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -112,7 +117,7 @@ input {
 // ── Header ────────────────────────────────────────────────────────────────────
 
 .app-header {
-  height: 64px;
+  height: 72px;
   padding: 0 24px;
   display: flex;
   align-items: center;
@@ -125,35 +130,52 @@ input {
 
   &__brand {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+    padding-bottom: 4px;
   }
 
-  &__logo {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    background: #1d4ed8;
-    color: white;
-    font-weight: 800;
+  &__logo-img {
+    height: 85px;
+    width: 85px;
+    object-fit: contain;
+    flex-shrink: 0;
+
+    // En dark mode, on inverse le texte navy → blanc pour la lisibilité
+    [data-theme='dark'] & {
+      filter: brightness(0) invert(1);
+    }
+
+    @media (max-width: 600px) {
+      height: 36px;
+    }
   }
 
-  &__name {
-    font-weight: 800;
-    color: var(--color-text-strong);
-  }
-
-  &__subtitle,
   &__separator {
     color: var(--color-text-faint);
     font-size: 14px;
+    white-space: nowrap;
+  }
+
+  &__subtitle {
+    font-family: 'Montserrat', 'Arial Black', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: auto;
+    padding-bottom: 15px;
   }
 
   &__actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
 
     button {
       display: inline-flex;
@@ -178,28 +200,63 @@ input {
         outline-offset: 2px;
       }
     }
+  }
 
-    &__lang-label {
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
+  &__lang-label {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+
+  &__a11y-btn {
+    background: var(--color-primary-ring);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-size: 13px;
+    gap: 6px;
+
+    span {
+      font-weight: 700;
     }
 
-    &__a11y-btn {
-      background: var(--color-primary-ring);
-      border-color: var(--color-primary);
-      color: var(--color-primary);
-      font-size: 13px;
-      gap: 6px;
+    &:hover {
+      background: var(--color-primary);
+      color: #fff;
+    }
+  }
 
-      span {
-        font-weight: 700;
-      }
+  // ── Responsive mobile ──────────────────────────────────────────────────────
 
-      &:hover {
-        background: var(--color-primary);
-        color: #fff;
+  @media (max-width: 600px) {
+    padding: 0 14px;
+    gap: 0;
+
+    &__subtitle {
+      display: none;
+    }
+
+    &__actions {
+      gap: 4px;
+
+      button {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
       }
+    }
+
+    &__a11y-btn span {
+      display: none;
+    }
+
+    &__lang-label {
+      display: none;
+    }
+  }
+
+  @media (max-width: 360px) {
+    &__logo-img {
+      height: 28px;
     }
   }
 }
@@ -213,7 +270,11 @@ input {
   &__content {
     display: flex;
     justify-content: center;
-    padding: 64px 16px;
+    padding: 48px 16px;
+
+    @media (max-width: 600px) {
+      padding: 24px 12px;
+    }
   }
 }
 
@@ -230,6 +291,11 @@ input {
   transition:
     background-color 0.2s,
     border-color 0.2s;
+
+  @media (max-width: 600px) {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
 
   &__badge {
     display: inline-flex;
@@ -250,6 +316,11 @@ input {
     font-weight: 800;
     color: var(--color-text-strong);
 
+    @media (max-width: 600px) {
+      font-size: 26px;
+      margin: 16px 0 12px;
+    }
+
     &:focus {
       outline: none;
     }
@@ -259,16 +330,28 @@ input {
     margin: 0;
     color: var(--color-text-muted);
     line-height: 1.7;
+
+    @media (max-width: 600px) {
+      font-size: 14px;
+    }
   }
 
   &__body {
     margin-top: 32px;
+
+    @media (max-width: 600px) {
+      margin-top: 24px;
+    }
   }
 
   &__footer {
     margin-top: 32px;
     padding-top: 20px;
     border-top: 1px solid var(--color-border);
+
+    @media (max-width: 600px) {
+      margin-top: 24px;
+    }
   }
 }
 
@@ -558,7 +641,6 @@ input {
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
-  box-shadow: 0 4px 16px rgb(244 63 94 / 20%);
 
   &::before {
     content: '⚠️';
@@ -646,10 +728,17 @@ input {
 
 .a11y-panel {
   position: fixed;
-  top: 72px;
-  right: 16px;
-  width: min(310px, calc(100vw - 32px));
-  max-height: calc(100vh - 88px);
+  top: 60px;
+  right: 8px;
+  width: min(310px, calc(100vw - 16px));
+  max-height: calc(100vh - 76px);
+
+  @media (min-width: 601px) {
+    top: 80px;
+    right: 16px;
+    width: min(310px, calc(100vw - 32px));
+    max-height: calc(100vh - 96px);
+  }
   z-index: 200;
   display: flex;
   flex-direction: column;
