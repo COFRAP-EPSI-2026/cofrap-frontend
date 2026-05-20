@@ -1168,7 +1168,10 @@ input {
   // Contenu textuel → OpenDyslexic
   p,
   li,
-  h1, h2, h3, h4,
+  h1,
+  h2,
+  h3,
+  h4,
   label,
   .auth-layout__description,
   .auth-layout__title,
@@ -1208,7 +1211,9 @@ input {
 // ── Bouton loading spinner ────────────────────────────────────────────────────
 
 @keyframes btn-spin {
-  to { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+  to {
+    transform: translateX(-50%) translateY(-50%) rotate(360deg);
+  }
 }
 
 .auth-button--loading {

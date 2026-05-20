@@ -68,7 +68,12 @@
         </p>
       </div>
 
-      <button class="auth-button auth-button--primary" type="submit" :disabled="loading" :class="{ 'auth-button--loading': loading }">
+      <button
+        class="auth-button auth-button--primary"
+        type="submit"
+        :disabled="loading"
+        :class="{ 'auth-button--loading': loading }"
+      >
         {{ t.renew.activateButton }}
       </button>
     </form>
@@ -129,7 +134,6 @@ const totpQr = ref('')
 // vérifier côté client que l'utilisateur a bien scanné le nouveau QR.
 const totpInstance = ref<OTPAuth.TOTP | null>(null)
 
-const loading = ref(false)
 const apiError = ref('')
 const totpError = ref('')
 

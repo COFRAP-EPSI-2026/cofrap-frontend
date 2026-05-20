@@ -34,6 +34,7 @@ Vite starts a dev server with **HMR** (hot module replacement) — by default on
 | `yarn type-check`  | TypeScript checking only (`vue-tsc --build`)                            |
 | `yarn preview`     | Serves the already-built `dist/` locally (check the prod rendering)     |
 | `yarn format`      | Formats `src/` with Prettier                                            |
+| `yarn format:check`| Checks formatting without modifying files (used by CI)                  |
 
 ## Code conventions
 
@@ -62,17 +63,33 @@ yarn preview
 
 ## Working with the backend locally
 
-The frontend calls the backend via `/api` (a relative path). In dev, the Vite server proxies `/api` to the OpenFaaS gateway (see `server.proxy` in `vite.config.ts`, target `http://127.0.0.1:8080`).
+The frontend calls the backend via `/api` (a relative path). In dev, Vite proxies
+`/api` to `http://127.0.0.1:8080` (see `server.proxy` in `vite.config.ts`). So you
+just need the backend reachable on port 8080 — two ways:
 
-For this to work, expose the OpenFaaS gateway on port 8080 **before** `yarn dev`:
+### Option A — the backend `docker compose` stack (recommended, no cluster)
+
+The backend repo ships a `docker-compose.yml` that starts MariaDB, the 3 functions
+and a Traefik exposing the gateway on `http://localhost:8080`:
+
+```bash
+# in the cofrap-backend repo
+docker compose up -d --build
+```
+
+Then, on the frontend side: `yarn dev`. Calls to `/api/function/<name>` flow
+through the Vite proxy → Traefik → function. No cluster needed, no CORS (same
+origin `localhost:5173`).
+
+### Option B — an OpenFaaS cluster gateway
+
+If the backend already runs on a cluster, expose its gateway on port 8080:
 
 ```bash
 kubectl -n openfaas port-forward svc/gateway 8080:8080
 ```
 
-Then `yarn dev`: the frontend's calls to `/api/function/<name>` reach the gateway. No CORS (Vite serves everything from the same origin `localhost:5173`).
-
-If the port-forward is not running, the app still loads but API calls fail — that is expected.
+If nothing listens on port 8080, the app still loads but API calls fail — that is expected.
 
 ## Test the Docker image locally
 
@@ -85,6 +102,37 @@ docker run --rm -p 8080:8080 cofrap-frontend:dev
 > With no cluster behind it, the container's `/api` proxy won't reach a gateway — only the SPA is testable this way.
 
 → Image + deployment details: [`deployment.md`](deployment.md).
+
+## Continuous integration
+
+Every push and every PR to `main` triggers `.github/workflows/ci.yml`:
+
+1. `yarn install --frozen-lockfile`
+2. `yarn format:check` — Prettier formatting check
+3. `yarn type-check` — `vue-tsc`
+4. `yarn build-only` — production build
+5. Docker image build (no push)
+
+Reproduce CI locally: `yarn format:check && yarn type-check && yarn build`.
+
+## Releases (Release Please)
+
+Versioning is **calendar-based** (`YYYY.MINOR.PATCH`) and **automated** by
+[Release Please](https://github.com/googleapis/release-please), like the backend:
+
+- Push [Conventional](https://www.conventionalcommits.org/) commits
+  (`feat:` → minor bump, `fix:` → patch bump) to `main`.
+- Release Please maintains a "Release PR" that bumps `package.json`,
+  `Chart.yaml`, `values.yaml` and `CHANGELOG.md`.
+- Merging that PR creates the `vX.Y.Z` tag + the GitHub Release, then
+  `.github/workflows/release-please.yml` builds and pushes the image to GHCR.
+
+**Never** bump the version by hand. Version-bearing files: `package.json` (auto),
+`deploy/helm/cofrap-frontend/Chart.yaml` (×2) and
+`deploy/helm/cofrap-frontend/values.yaml` (annotated `# x-release-please-version`).
+
+One-time prerequisite: Settings → Actions → General → Workflow permissions →
+tick "Allow GitHub Actions to create and approve pull requests".
 
 ## Common issues
 
