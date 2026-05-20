@@ -48,7 +48,7 @@
         {{ t.login.backHomeButton }}
       </RouterLink>
 
-      <button v-if="!isLocked" class="auth-button auth-button--primary" type="submit">
+      <button v-if="!isLocked" class="auth-button auth-button--primary" type="submit" :disabled="loading" :class="{ 'auth-button--loading': loading }">
         {{ t.login.submitButton }}
       </button>
     </form>
@@ -95,6 +95,7 @@ const form = reactive({
   totp: '',
 })
 
+const loading = ref(false)
 const errorMessage = ref('')
 const isLocked = ref(false)
 const loginSuccess = ref(false)
@@ -105,6 +106,10 @@ const focusTitle = async () => {
 }
 
 watch(loginSuccess, (val) => { if (val) focusTitle() })
+
+watch(() => form.totp, (val) => {
+  if (/^\d{6}$/.test(val)) handleLogin()
+})
 
 const getLoginSecurity = () => {
   const storedSecurity = localStorage.getItem('cofrap-login-security')
@@ -152,7 +157,10 @@ const registerFailedAttempt = () => {
   errorMessage.value = t.login.errorAttempts(MAX_ATTEMPTS - attempts)
 }
 
-const handleLogin = () => {
+const handleLogin = async () => {
+  if (loading.value) return
+  loading.value = true
+  await nextTick() // laisser Vue rendre le spinner avant la logique synchrone
   errorMessage.value = ''
   isLocked.value = false
 
@@ -163,6 +171,7 @@ const handleLogin = () => {
 
     isLocked.value = true
 
+    loading.value = false
     return
   }
 
@@ -170,18 +179,21 @@ const handleLogin = () => {
 
   if (!storedUser) {
     errorMessage.value = t.login.errorNoAccount
+    loading.value = false
     return
   }
 
   const user = JSON.parse(storedUser)
 
   if (user.expired) {
+    loading.value = false
     router.push('/renew')
     return
   }
 
   if (form.username !== user.username || form.password !== user.password) {
     registerFailedAttempt()
+    loading.value = false
     return
   }
 
@@ -201,11 +213,13 @@ const handleLogin = () => {
 
   if (delta === null) {
     registerFailedAttempt()
+    loading.value = false
     return
   }
 
   resetLoginSecurity()
 
   loginSuccess.value = true
+  loading.value = false
 }
 </script>

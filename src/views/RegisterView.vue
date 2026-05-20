@@ -39,7 +39,7 @@
         />
       </div>
 
-      <button class="auth-button auth-button--primary" type="submit">
+      <button class="auth-button auth-button--primary" type="submit" :disabled="loading" :class="{ 'auth-button--loading': loading }">
         {{ t.register.generateButton }}
       </button>
     </form>
@@ -92,7 +92,7 @@
         </p>
       </div>
 
-      <button class="auth-button auth-button--primary" type="submit">
+      <button class="auth-button auth-button--primary" type="submit" :disabled="loading" :class="{ 'auth-button--loading': loading }">
         {{ t.register.activateButton }}
       </button>
     </form>
@@ -128,10 +128,13 @@ import QRCode from 'qrcode'
 
 import AuthLayout from '@/components/AuthLayout.vue'
 import { useLang } from '@/composables/useLang'
+import { useA11y } from '@/composables/useA11y'
 
 const { t } = useLang()
+const { audioReading } = useA11y()
 
 const step = ref(1)
+const loading = ref(false)
 
 const focusTitle = async () => {
   await nextTick()
@@ -148,6 +151,10 @@ watch(step, async (newStep) => {
 })
 const username = ref('')
 const totp = ref('')
+
+watch(totp, (val) => {
+  if (step.value === 3 && /^\d{6}$/.test(val)) activateAccount()
+})
 
 const password = ref('')
 const passwordQr = ref('')
@@ -178,6 +185,8 @@ const generateTotpSecret = () => {
 const generatePassword = async () => {
   if (!username.value.trim()) return
 
+  loading.value = true
+
   password.value = generateSecurePassword()
 
   totpSecret.value = generateTotpSecret()
@@ -189,9 +198,13 @@ const generatePassword = async () => {
   )
 
   step.value = 2
+  loading.value = false
 }
 
-const activateAccount = () => {
+const activateAccount = async () => {
+  if (loading.value) return
+  loading.value = true
+  await nextTick()
   totpError.value = ''
 
   const totpInstance = new OTPAuth.TOTP({
@@ -210,6 +223,7 @@ const activateAccount = () => {
 
   if (delta === null) {
     totpError.value = t.register.totpError
+    loading.value = false
     return
   }
 
@@ -225,10 +239,19 @@ const activateAccount = () => {
   )
 
   step.value = 4
+  loading.value = false
 }
 
 const copyPassword = async () => {
   await navigator.clipboard.writeText(password.value)
   copied.value = true
+  if (audioReading.value && window.speechSynthesis) {
+    const lang = document.documentElement.lang === 'fr' ? 'fr-FR' : 'en-US'
+    const msg = lang === 'fr-FR' ? 'Mot de passe copié' : 'Password copied'
+    const u = new SpeechSynthesisUtterance(msg)
+    u.lang = lang
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(u)
+  }
 }
 </script>
