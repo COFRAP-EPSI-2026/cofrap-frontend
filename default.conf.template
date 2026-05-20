@@ -1,0 +1,52 @@
+# Template nginx pour servir la SPA Vue + proxifier l'API backend.
+#
+# Traité par `envsubst` au démarrage du conteneur : seules les variables
+# `OPENFAAS_*` sont substituées (cf. NGINX_ENVSUBST_FILTER dans le Dockerfile),
+# donc les variables nginx natives ($uri, $host, ...) sont préservées.
+# Résultat écrit dans /etc/nginx/conf.d/default.conf.
+
+server {
+    listen 8080;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Compression des fichiers texte.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # --- Liaison backend : /api/* → gateway OpenFaaS ---
+    # Le navigateur appelle /api/function/<name> (même origine → aucun CORS).
+    # Le `/` final strippe le préfixe /api/ : le gateway reçoit /function/<name>.
+    location /api/ {
+        proxy_pass http://${OPENFAAS_GATEWAY}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Assets fingerprintés par Vite (nom hashé) → cache long et immuable.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Sonde de santé (HEALTHCHECK Docker + probes Kubernetes).
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+
+    # SPA fallback : vue-router est en history mode, toute route inconnue
+    # (/login, /register, /renew, ...) doit renvoyer index.html.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

@@ -4,20 +4,19 @@
 
 Frontend of the COFRAP PoC (MSPR TPRE912): a **SPA** (Single Page Application) that lets users create an account, authenticate and renew their credentials, backed by the serverless backend functions.
 
-At runtime, the app is a set of static files (HTML/CSS/JS) served by **nginx**. No application server: everything runs in the browser.
+At runtime, the app is a set of static files (HTML/CSS/JS) served by **nginx**. No application server: everything runs in the browser. The same nginx also **proxies `/api/*`** to the OpenFaaS gateway — so the browser only ever talks to a single origin.
 
 ```
-┌─────────────────────────────┐         ┌──────────────────┐
-│  Browser                    │  HTTP   │  nginx (K8s pod) │
-│  Vue 3 SPA (HTML/CSS/JS)    │ ◄─────► │  /dist files     │
-└─────────────────────────────┘         └──────────────────┘
-            │
-            │  (upcoming — not wired in this version)
-            ▼
-   OpenFaaS backend (generate-password / generate-2fa / authenticate-user)
+┌──────────────┐   /          ┌────────────────────────────┐
+│  Browser     │ ───────────► │  nginx (K8s pod)           │
+│  Vue 3 SPA   │              │  ├─ /        → SPA /dist   │
+│              │   /api/...   │  └─ /api/*   → proxy ───────┼──► OpenFaaS gateway
+└──────────────┘ ───────────► └────────────────────────────┘     (generate-password,
+                                                                   generate-2fa,
+                                                                   authenticate-user)
 ```
 
-> The backend connection is **not** enabled in this version. The API client (`src/components/openfaasApi.ts`) exists but is not wired to a real endpoint.
+> **Backend connection enabled**: see [Backend connection](#backend-connection). The browser calls `/api/...` as a relative path (same origin → no CORS).
 
 ## Tech stack
 
@@ -28,7 +27,7 @@ At runtime, the app is a set of static files (HTML/CSS/JS) served by **nginx**. 
 | Language           | **TypeScript**                   | Static typing, checked by `vue-tsc`                                    |
 | Routing            | **vue-router** (history mode)    | Client-side navigation across the 4 views                              |
 | State              | **Pinia**                        | Standard reactive store of the Vue 3 ecosystem                         |
-| HTTP client        | **axios**                        | Backend calls (to be wired later)                                      |
+| HTTP client        | **axios**                        | `openfaasApi.ts` client, backend calls via `/api`                      |
 | 2FA / QR           | **otplib** / **otpauth** / **qrcode** | Client-side TOTP and QR code generation/reading                  |
 | Styles             | **SCSS** (`sass`)                | `src/assets/main.scss` stylesheet                                      |
 | Packages           | **Yarn** classic (lockfile v1)   | `yarn.lock`                                                            |
@@ -42,7 +41,7 @@ cofrap-frontend/
 ├── vite.config.ts           # Vite config (alias @ → src/)
 ├── package.json             # Dependencies + Yarn scripts
 ├── Dockerfile               # Multi-stage build: node → nginx
-├── nginx.conf               # nginx config (SPA fallback + /healthz)
+├── default.conf.template               # nginx config (SPA fallback + /healthz)
 ├── src/
 │   ├── main.ts              # Bootstrap: creates the Vue app, mounts router + Pinia
 │   ├── App.vue              # Root component
@@ -81,7 +80,7 @@ cofrap-frontend/
 | `/register`  | `RegisterView`   | Account creation (password + 2FA)             |
 | `/renew`     | `RenewView`      | Renewal of expired credentials                |
 
-History mode means **the server must return `index.html`** for any unknown route, otherwise reloading the page on `/login` yields a 404. That is the job of the `try_files ... /index.html` in [`nginx.conf`](../../nginx.conf).
+History mode means **the server must return `index.html`** for any unknown route, otherwise reloading the page on `/login` yields a 404. That is the job of the `try_files ... /index.html` in [`default.conf.template`](../../default.conf.template).
 
 ## Internationalisation
 
@@ -95,6 +94,26 @@ A strong point of the project (the brief's "inclusive working environment" sub-t
 - `useAudioReading` — audio reading of the content (useful for visual impairments).
 - `useTheme` — light/dark theme.
 - **OpenDyslexic** font loaded in `index.html` (reading comfort for dyslexic profiles).
+
+## Backend connection
+
+The frontend calls the 3 OpenFaaS functions through the **`/api`** prefix, as a **relative** path. That prefix is proxied to the OpenFaaS gateway — twice, depending on the context:
+
+| Context         | Who proxies `/api`?                            | To                                                    |
+|-----------------|------------------------------------------------|-------------------------------------------------------|
+| **Production**  | the pod's nginx (`default.conf.template`)      | `${OPENFAAS_GATEWAY}` (default `gateway.openfaas.svc.cluster.local:8080`) |
+| **Local dev**   | the Vite dev server (`vite.config.ts`)         | `http://127.0.0.1:8080` (port-forwarded gateway)      |
+
+In both cases the `/api` prefix is stripped: a request `/api/function/generate-password` reaches the gateway as `/function/generate-password`.
+
+**Benefits of this approach:**
+- The browser only sees **one origin** (the frontend) → **no CORS** to manage.
+- No backend URL hard-coded in the bundle: everything is relative.
+- The OpenFaaS gateway does not need to be publicly exposed.
+
+**API client** — `src/components/openfaasApi.ts`: an `axios` instance with `baseURL: '/api'` and three typed functions — `generatePassword()`, `generate2fa()`, `authenticate()` — plus an `apiErrorMessage()` helper. Views import this client; they never build URLs themselves.
+
+The production gateway address is configurable via the Helm chart's `backend.gateway` value (injected into the container as the `OPENFAAS_GATEWAY` variable).
 
 ## Build
 

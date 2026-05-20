@@ -4,20 +4,19 @@
 
 Frontend du PoC COFRAP (MSPR TPRE912) : une **SPA** (Single Page Application) qui permet de créer un compte, de s'authentifier et de renouveler ses identifiants en s'appuyant sur les fonctions serverless du backend.
 
-Au runtime, l'application est un ensemble de fichiers statiques (HTML/CSS/JS) servis par **nginx**. Aucun serveur applicatif : tout s'exécute dans le navigateur.
+Au runtime, l'application est un ensemble de fichiers statiques (HTML/CSS/JS) servis par **nginx**. Aucun serveur applicatif : tout s'exécute dans le navigateur. Le même nginx **proxifie `/api/*`** vers le gateway OpenFaaS — le navigateur ne parle donc qu'à une seule origine.
 
 ```
-┌─────────────────────────────┐         ┌──────────────────┐
-│  Navigateur                 │  HTTP   │  nginx (pod K8s) │
-│  SPA Vue 3 (HTML/CSS/JS)    │ ◄─────► │  fichiers /dist  │
-└─────────────────────────────┘         └──────────────────┘
-            │
-            │  (à venir — non câblé dans cette version)
-            ▼
-   Backend OpenFaaS (generate-password / generate-2fa / authenticate-user)
+┌──────────────┐   /          ┌────────────────────────────┐
+│  Navigateur  │ ───────────► │  nginx (pod K8s)           │
+│  SPA Vue 3   │              │  ├─ /        → SPA /dist   │
+│              │   /api/...   │  └─ /api/*   → proxy ───────┼──► Gateway OpenFaaS
+└──────────────┘ ───────────► └────────────────────────────┘     (generate-password,
+                                                                   generate-2fa,
+                                                                   authenticate-user)
 ```
 
-> La connexion au backend n'est **pas** activée dans cette version. Le client API (`src/components/openfaasApi.ts`) existe mais n'est pas branché à un endpoint réel.
+> **Liaison backend activée** : voir la section [Liaison avec le backend](#liaison-avec-le-backend). Le navigateur appelle `/api/...` en chemin relatif (même origine → aucun CORS).
 
 ## Stack technique
 
@@ -28,7 +27,7 @@ Au runtime, l'application est un ensemble de fichiers statiques (HTML/CSS/JS) se
 | Langage            | **TypeScript**                   | Typage statique, vérifié par `vue-tsc`                                 |
 | Routing            | **vue-router** (history mode)    | Navigation client entre les 4 vues                                     |
 | État               | **Pinia**                        | Store réactif standard de l'écosystème Vue 3                           |
-| Client HTTP        | **axios**                        | Appels au backend (à câbler plus tard)                                 |
+| Client HTTP        | **axios**                        | Client `openfaasApi.ts`, appels au backend via `/api`                  |
 | 2FA / QR           | **otplib** / **otpauth** / **qrcode** | Génération/lecture TOTP et QR codes côté client                  |
 | Styles             | **SCSS** (`sass`)                | Feuille `src/assets/main.scss`                                         |
 | Paquets            | **Yarn** classic (lockfile v1)   | `yarn.lock`                                                            |
@@ -42,7 +41,7 @@ cofrap-frontend/
 ├── vite.config.ts           # Config Vite (alias @ → src/)
 ├── package.json             # Dépendances + scripts Yarn
 ├── Dockerfile               # Build multi-stage : node → nginx
-├── nginx.conf               # Config nginx (SPA fallback + /healthz)
+├── default.conf.template               # Config nginx (SPA fallback + /healthz)
 ├── src/
 │   ├── main.ts              # Bootstrap : crée l'app Vue, monte router + Pinia
 │   ├── App.vue              # Composant racine
@@ -81,7 +80,7 @@ cofrap-frontend/
 | `/register`  | `RegisterView`   | Création de compte (mot de passe + 2FA)       |
 | `/renew`     | `RenewView`      | Renouvellement des identifiants expirés       |
 
-Le history mode implique que **le serveur doit renvoyer `index.html`** pour toute route inconnue, sinon un rechargement de page sur `/login` donne un 404. C'est le rôle du `try_files ... /index.html` de [`nginx.conf`](../../nginx.conf).
+Le history mode implique que **le serveur doit renvoyer `index.html`** pour toute route inconnue, sinon un rechargement de page sur `/login` donne un 404. C'est le rôle du `try_files ... /index.html` de [`default.conf.template`](../../default.conf.template).
 
 ## Internationalisation
 
@@ -95,6 +94,26 @@ Point fort du projet (sous-tâche « environnement de travail inclusif » du suj
 - `useAudioReading` — lecture audio du contenu (utile pour les déficiences visuelles).
 - `useTheme` — thème clair/sombre.
 - Police **OpenDyslexic** chargée dans `index.html` (confort de lecture pour les profils dyslexiques).
+
+## Liaison avec le backend
+
+Le frontend appelle les 3 fonctions OpenFaaS via le préfixe **`/api`**, en chemin **relatif**. Ce préfixe est proxifié vers le gateway OpenFaaS — deux fois, selon le contexte :
+
+| Contexte        | Qui proxifie `/api` ?                          | Vers                                                  |
+|-----------------|------------------------------------------------|-------------------------------------------------------|
+| **Production**  | le nginx du pod (`default.conf.template`)      | `${OPENFAAS_GATEWAY}` (défaut `gateway.openfaas.svc.cluster.local:8080`) |
+| **Dev local**   | le serveur de dev Vite (`vite.config.ts`)      | `http://127.0.0.1:8080` (gateway port-forwardé)       |
+
+Dans les deux cas le préfixe `/api` est strippé : une requête `/api/function/generate-password` arrive au gateway en `/function/generate-password`.
+
+**Avantages de cette approche :**
+- Le navigateur ne voit qu'**une seule origine** (le frontend) → **aucun CORS** à gérer.
+- Aucune URL de backend codée en dur dans le bundle : tout est relatif.
+- Le gateway OpenFaaS n'a pas besoin d'être exposé publiquement.
+
+**Client API** — `src/components/openfaasApi.ts` : une instance `axios` avec `baseURL: '/api'` et trois fonctions typées : `generatePassword()`, `generate2fa()`, `authenticate()`, plus un helper `apiErrorMessage()`. Les vues importent ce client ; elles ne construisent jamais d'URL elles-mêmes.
+
+L'adresse du gateway en production est configurable via la valeur `backend.gateway` du chart Helm (injectée dans le conteneur comme variable `OPENFAAS_GATEWAY`).
 
 ## Build
 

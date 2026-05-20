@@ -23,6 +23,10 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          env:
+            # Substituée dans default.conf.template par envsubst au démarrage de nginx.
+            - name: OPENFAAS_GATEWAY
+              value: {{ .Values.backend.gateway | quote }}
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.path }}

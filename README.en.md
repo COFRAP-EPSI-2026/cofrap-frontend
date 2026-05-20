@@ -34,7 +34,7 @@
 
 Frontend of the **COFRAP** PoC (MSPR TPRE912 — serverless development project). A Vue 3 **SPA** (Single Page Application) that lets users create an account, authenticate and renew expired credentials, backed by the serverless backend functions.
 
-> OpenFaaS backend in a separate repo. **The backend connection is not enabled in this version** — the frontend deploys and runs standalone.
+> OpenFaaS backend in a separate repo. The frontend calls it through the **`/api`** prefix, proxied (by the pod's nginx in production, by Vite in dev) to the OpenFaaS gateway — same origin, no CORS.
 
 ## Architecture
 
@@ -108,7 +108,7 @@ helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
 ├── package.json                      # dependencies + Yarn scripts
 ├── vite.config.ts                    # Vite configuration
 ├── Dockerfile                        # multi-stage build node → nginx
-├── nginx.conf                        # nginx config (SPA fallback + /healthz)
+├── default.conf.template                        # nginx config (SPA fallback + /healthz)
 ├── src/
 │   ├── views/                        # 4 views (home, login, register, renew)
 │   ├── components/                   # reusable components

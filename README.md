@@ -34,7 +34,7 @@
 
 Frontend du PoC **COFRAP** (MSPR TPRE912 — projet de développement serverless). Une **SPA** (Single Page Application) Vue 3 qui doit permettre de créer un compte, de s'authentifier et de renouveler des identifiants expirés, en s'appuyant sur les fonctions serverless du backend.
 
-> Backend OpenFaaS dans un dépôt séparé. **La connexion au backend n'est pas activée dans cette version** — le frontend se déploie et fonctionne de manière autonome.
+> Backend OpenFaaS dans un dépôt séparé. Le frontend l'appelle via le préfixe **`/api`**, proxifié (par le nginx du pod en prod, par Vite en dev) vers le gateway OpenFaaS — même origine, aucun CORS.
 
 ## Architecture
 
@@ -108,7 +108,7 @@ helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
 ├── package.json                      # dépendances + scripts Yarn
 ├── vite.config.ts                    # configuration Vite
 ├── Dockerfile                        # build multi-stage node → nginx
-├── nginx.conf                        # config nginx (SPA fallback + /healthz)
+├── default.conf.template                        # config nginx (SPA fallback + /healthz)
 ├── src/
 │   ├── views/                        # 4 vues (home, login, register, renew)
 │   ├── components/                   # composants réutilisables

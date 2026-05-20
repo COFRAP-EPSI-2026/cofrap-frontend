@@ -56,7 +56,17 @@ Voir [`values.yaml`](values.yaml) — commenté. Les plus utiles :
 helm uninstall cofrap-frontend -n cofrap
 ```
 
+## Liaison backend
+
+Le nginx du pod proxifie `/api/*` vers le gateway OpenFaaS — le navigateur reste sur une seule origine (aucun CORS). La cible est la valeur **`backend.gateway`** (défaut `gateway.openfaas.svc.cluster.local:8080`), injectée dans le conteneur comme variable `OPENFAAS_GATEWAY` :
+
+```bash
+helm install cofrap-frontend ./deploy/helm/cofrap-frontend -n cofrap \
+  --set backend.gateway=gateway.openfaas.svc.cluster.local:8080
+```
+
+Le gateway OpenFaaS n'a **pas** besoin d'être exposé par un Ingress — le proxy passe par le réseau interne du cluster.
+
 ## Notes
 
-- Le frontend est **autonome** : ce chart ne déclare aucune dépendance au backend (pas de proxy `/api`, pas de variable d'environnement backend). La connexion au backend sera ajoutée ultérieurement.
 - Le pod tourne **non-root** (image `nginxinc/nginx-unprivileged`, UID 101, port 8080).

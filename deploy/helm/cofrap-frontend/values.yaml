@@ -12,6 +12,12 @@ image:
   tag: "2026.1.0"
   pullPolicy: IfNotPresent
 
+# -- Backend OpenFaaS. nginx proxifie /api/* vers ce gateway (même origine → pas de CORS).
+backend:
+  # Adresse interne du gateway OpenFaaS, au format host:port (Service ClusterIP).
+  # Ajuster si OpenFaaS est installé dans un autre namespace que `openfaas`.
+  gateway: gateway.openfaas.svc.cluster.local:8080
+
 # -- Service interne (le pod nginx-unprivileged écoute sur 8080).
 service:
   type: ClusterIP
@@ -41,7 +47,7 @@ resources:
     cpu: 200m
     memory: 128Mi
 
-# -- Sonde de santé (endpoint /healthz exposé par nginx.conf).
+# -- Sonde de santé (endpoint /healthz exposé par default.conf.template).
 probes:
   path: /healthz
 
