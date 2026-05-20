@@ -156,8 +156,12 @@ input {
     gap: 8px;
 
     button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       min-width: 36px;
       height: 36px;
+      padding: 0 10px;
       border-radius: 10px;
       border: 1px solid var(--color-border);
       background: var(--color-surface);
@@ -172,6 +176,29 @@ input {
       &:focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+      }
+    }
+
+    &__lang-label {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    &__a11y-btn {
+      background: var(--color-primary-ring);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      font-size: 13px;
+      gap: 6px;
+
+      span {
+        font-weight: 700;
+      }
+
+      &:hover {
+        background: var(--color-primary);
+        color: #fff;
       }
     }
   }
@@ -613,4 +640,384 @@ input {
   color: var(--color-success-text);
   font-size: 14px;
   font-weight: 700;
+}
+
+// ── A11y panel (popover compact) ──────────────────────────────────────────────
+
+.a11y-panel {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  width: min(310px, calc(100vw - 32px));
+  max-height: calc(100vh - 88px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 24px var(--color-shadow),
+    0 2px 6px var(--color-shadow);
+  overflow-y: auto;
+  outline: none;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  // Petite flèche pointant vers le bouton dans le header
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 56px;
+    width: 12px;
+    height: 12px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    border-left: 1px solid var(--color-border);
+    transform: rotate(45deg);
+    border-radius: 2px 0 0 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-strong);
+  }
+
+  &__close {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+
+    &:hover {
+      background: var(--color-surface-subtle);
+      color: var(--color-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+  }
+
+  &__body {
+    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+// ── A11y list ──────────────────────────────────────────────────────────────────
+
+.a11y-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.a11y-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: var(--color-surface-subtle);
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: pointer;
+    user-select: none;
+  }
+}
+
+// ── A11y font-size selector ────────────────────────────────────────────────────
+
+.a11y-font-size-section {
+  padding: 14px 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 6px;
+}
+
+.a11y-section-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-faint);
+}
+
+.a11y-font-size {
+  display: flex;
+  gap: 8px;
+
+  &__btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-subtle);
+    color: var(--color-text);
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+
+    &:hover:not(&--active) {
+      background: var(--color-border);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    &--large {
+      font-size: 20px;
+    }
+
+    &--larger {
+      font-size: 26px;
+    }
+
+    &--active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+  }
+}
+
+// ── A11y toggle switch ─────────────────────────────────────────────────────────
+
+.a11y-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 24px;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  &[aria-checked='true'] {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+
+    .a11y-switch__thumb {
+      transform: translateX(16px);
+      background: #fff;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    transition: transform 0.2s, background-color 0.2s;
+  }
+}
+
+// ── A11y reset button ──────────────────────────────────────────────────────────
+
+.a11y-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: var(--color-surface-subtle);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+// ── A11y panel fade + drop transition ─────────────────────────────────────────
+
+.a11y-panel-enter-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.a11y-panel-leave-active {
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+
+.a11y-panel-enter-from,
+.a11y-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
+}
+
+// ── Data-attribute overrides ───────────────────────────────────────────────────
+
+// Taille du texte
+[data-font-size='large'] {
+  font-size: 18px;
+
+  body {
+    font-size: 18px;
+  }
+}
+
+[data-font-size='larger'] {
+  font-size: 21px;
+
+  body {
+    font-size: 21px;
+  }
+}
+
+// Contraste renforcé
+[data-contrast='high'] {
+  --color-text: #000000;
+  --color-text-strong: #000000;
+  --color-text-muted: #1a1a1a;
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: #000000;
+  --color-border-input: #000000;
+  --color-primary: #0000cc;
+  --color-primary-btn: #0000cc;
+}
+
+[data-theme='dark'][data-contrast='high'] {
+  --color-text: #ffffff;
+  --color-text-strong: #ffffff;
+  --color-text-muted: #e0e0e0;
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-border: #ffffff;
+  --color-border-input: #ffffff;
+  --color-primary: #66aaff;
+  --color-primary-btn: #5599ff;
+}
+
+// Réduire les animations
+[data-reduce-motion='on'] {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Focus clavier renforcé
+[data-enhanced-focus='on'] {
+  :focus-visible {
+    outline: 3px solid #f59e0b !important;
+    outline-offset: 4px !important;
+    box-shadow: 0 0 0 6px rgb(245 158 11 / 25%) !important;
+  }
+}
+
+// Espacement augmenté
+[data-spacing='large'] {
+  body {
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+    word-spacing: 0.1em;
+  }
+
+  p,
+  li,
+  label,
+  span,
+  input,
+  button {
+    line-height: 1.9;
+  }
+}
+
+// Police plus lisible — OpenDyslexic
+[data-readable-font='on'] {
+  --font-readable: 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', Arial, sans-serif;
+
+  body {
+    font-family: var(--font-readable);
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font-family: var(--font-readable);
+  }
 }

@@ -1,13 +1,29 @@
 export const fr = {
   skipLink: 'Passer au contenu principal',
 
+  a11y: {
+    buttonLabel: "Adapter l'affichage",
+    panelTitle: "Adapter l'affichage",
+    close: "Fermer le panneau d'accessibilité",
+    fontSize: 'Taille du texte',
+    fontSizeDefault: 'A',
+    fontSizeLarge: 'A',
+    fontSizeLarger: 'A',
+    highContrast: 'Contraste renforcé',
+    reduceMotion: 'Réduire les animations',
+    enhancedFocus: 'Focus clavier renforcé',
+    increasedSpacing: 'Espacement augmenté',
+    readableFont: 'Police plus lisible',
+    reset: 'Réinitialiser',
+  },
+
   passwordInput: {
     show: 'Afficher le mot de passe',
     hide: 'Masquer le mot de passe',
   },
 
   header: {
-    langButtonLabel: 'Langue : Français',
+    langButtonLabel: 'Switch to English',
     darkModeButton: 'Activer le mode sombre',
     lightModeButton: 'Activer le mode clair',
     accessibilityButtonLabel: "Options d'accessibilité",
