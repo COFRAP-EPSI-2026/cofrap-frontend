@@ -1,0 +1,18 @@
+apiVersion: v2
+name: cofrap-frontend
+description: Frontend Vue 3 du PoC COFRAP — SPA statique servie par nginx.
+type: application
+version: 2026.1.0
+appVersion: "2026.1.0"
+keywords:
+  - vue
+  - frontend
+  - spa
+  - nginx
+  - mspr
+home: https://github.com/COFRAP-EPSI-2026/cofrap-frontend
+sources:
+  - https://github.com/COFRAP-EPSI-2026/cofrap-frontend
+maintainers:
+  - name: COFRAP-EPSI-2026
+    url: https://github.com/COFRAP-EPSI-2026
