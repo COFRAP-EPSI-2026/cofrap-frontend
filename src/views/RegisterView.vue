@@ -135,10 +135,8 @@ import * as OTPAuth from 'otpauth'
 import AuthLayout from '@/components/AuthLayout.vue'
 import { generatePassword, generate2fa, apiErrorMessage } from '@/components/openfaasApi'
 import { useLang } from '@/composables/useLang'
-import { useA11y } from '@/composables/useA11y'
 
 const { t } = useLang()
-const { audioReading } = useA11y()
 
 const step = ref(1)
 const loading = ref(false)
