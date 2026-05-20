@@ -65,8 +65,8 @@ export const fr = {
     errorLocked: 'Compte temporairement bloqué après 3 tentatives. Réessayez dans 5 minutes.',
     errorLockedCheck: 'Compte temporairement bloqué. Réessayez dans 5 minutes.',
     errorNoAccount: 'Aucun compte activé trouvé.',
-    errorAttempts: (remaining: number) =>
-      `Connexion refusée. Tentatives restantes : ${remaining}.`,
+    errorAttempts: (remaining: number) => `Connexion refusée. Tentatives restantes : ${remaining}.`,
+    errorServer: 'Erreur de communication avec le serveur. Réessayez plus tard.',
   },
 
   register: {
@@ -81,7 +81,7 @@ export const fr = {
       'Votre mot de passe sera généré automatiquement et transmis via un QR code à usage unique.',
     step2Title: 'Votre mot de passe',
     step2Description:
-      "Scannez le QR code avec un gestionnaire de mots de passe pour l’enregistrer.",
+      'Scannez le QR code avec un gestionnaire de mots de passe pour l’enregistrer.',
     step3Title: 'Activer la double authentification',
     step3Description:
       'Scannez ce QR code avec votre application TOTP puis saisissez le code généré.',
@@ -89,7 +89,7 @@ export const fr = {
     usernamePlaceholder: 'prenom.nom',
     generateButton: 'Générer mon mot de passe',
     passwordQrAlt: 'QR code contenant le mot de passe généré',
-    warning: "Conservez-le maintenant : il ne sera pas affiché de nouveau.",
+    warning: 'Conservez-le maintenant : il ne sera pas affiché de nouveau.',
     continueButton: 'Continuer vers la 2FA',
     totpQrAlt: 'QR code pour configurer la double authentification TOTP',
     totpLabel: 'Entrez le code à 6 chiffres',
@@ -105,10 +105,14 @@ export const fr = {
     footerHaveAccount: 'Déjà un compte ?',
     copyButton: 'Copier le mot de passe',
     copiedButton: 'Mot de passe copié',
+    apiError: 'Erreur lors de la communication avec le serveur. Réessayez.',
   },
 
   renew: {
     badge: 'Renouvellement',
+    usernameLabel: 'Identifiant',
+    usernamePlaceholder: 'prenom.nom',
+    apiError: 'Erreur lors de la communication avec le serveur. Réessayez.',
     step1Title: "Renouveler l'accès",
     step1Description:
       'Vos identifiants doivent être renouvelés pour continuer à utiliser COFRAP Cloud.',
@@ -118,7 +122,7 @@ export const fr = {
     step3Description:
       'Scannez le QR code puis saisissez le code généré par votre application TOTP.',
     warning:
-      "Vos identifiants ont expiré. Un nouveau mot de passe et une nouvelle double authentification vont être générés.",
+      'Vos identifiants ont expiré. Un nouveau mot de passe et une nouvelle double authentification vont être générés.',
     renewButton: 'Renouveler mes identifiants',
     passwordQrAlt: 'QR code contenant le nouveau mot de passe généré',
     continueButton: 'Continuer vers la 2FA',

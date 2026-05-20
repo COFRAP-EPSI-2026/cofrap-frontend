@@ -65,6 +65,7 @@ export const en = {
     errorLockedCheck: 'Account temporarily locked. Try again in 5 minutes.',
     errorNoAccount: 'No activated account found.',
     errorAttempts: (remaining: number) => `Login denied. Remaining attempts: ${remaining}.`,
+    errorServer: 'Server communication error. Please try again later.',
   },
 
   register: {
@@ -100,10 +101,14 @@ export const en = {
     footerHaveAccount: 'Already have an account?',
     copyButton: 'Copy password',
     copiedButton: 'Password copied',
+    apiError: 'Error communicating with the server. Please try again.',
   },
 
   renew: {
     badge: 'Renewal',
+    usernameLabel: 'Username',
+    usernamePlaceholder: 'firstname.lastname',
+    apiError: 'Error communicating with the server. Please try again.',
     step1Title: 'Renew access',
     step1Description: 'Your credentials must be renewed to continue using COFRAP Cloud.',
     step2Title: 'New password',

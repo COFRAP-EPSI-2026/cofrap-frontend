@@ -50,7 +50,15 @@ function applyA11y() {
 }
 
 watch(
-  [fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, audioReading],
+  [
+    fontSize,
+    highContrast,
+    reduceMotion,
+    enhancedFocus,
+    increasedSpacing,
+    readableFont,
+    audioReading,
+  ],
   applyA11y,
   { immediate: true },
 )
@@ -66,5 +74,14 @@ export function useA11y() {
     audioReading.value = false
   }
 
-  return { fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, audioReading, reset }
+  return {
+    fontSize,
+    highContrast,
+    reduceMotion,
+    enhancedFocus,
+    increasedSpacing,
+    readableFont,
+    audioReading,
+    reset,
+  }
 }
