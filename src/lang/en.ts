@@ -13,7 +13,9 @@ export const en = {
     reduceMotion: 'Reduce animations',
     enhancedFocus: 'Enhanced keyboard focus',
     increasedSpacing: 'Increased spacing',
-    readableFont: 'More readable font',
+    readableFont: 'Dyslexia font (OpenDyslexic)',
+    audioReading: 'Audio reading',
+    audioReadingActive: 'Audio reading active — hover or navigate with keyboard',
     reset: 'Reset',
   },
 

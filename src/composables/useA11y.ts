@@ -9,6 +9,7 @@ interface A11yState {
   enhancedFocus: boolean
   increasedSpacing: boolean
   readableFont: boolean
+  audioReading: boolean
 }
 
 const stored: Partial<A11yState> = JSON.parse(localStorage.getItem('cofrap-a11y') ?? '{}')
@@ -19,6 +20,7 @@ const reduceMotion = ref(stored.reduceMotion ?? false)
 const enhancedFocus = ref(stored.enhancedFocus ?? false)
 const increasedSpacing = ref(stored.increasedSpacing ?? false)
 const readableFont = ref(stored.readableFont ?? false)
+const audioReading = ref(stored.audioReading ?? false)
 
 function flag(val: boolean) {
   return val ? 'on' : 'off'
@@ -42,12 +44,13 @@ function applyA11y() {
       enhancedFocus: enhancedFocus.value,
       increasedSpacing: increasedSpacing.value,
       readableFont: readableFont.value,
+      audioReading: audioReading.value,
     }),
   )
 }
 
 watch(
-  [fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont],
+  [fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, audioReading],
   applyA11y,
   { immediate: true },
 )
@@ -60,7 +63,8 @@ export function useA11y() {
     enhancedFocus.value = false
     increasedSpacing.value = false
     readableFont.value = false
+    audioReading.value = false
   }
 
-  return { fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, reset }
+  return { fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, audioReading, reset }
 }

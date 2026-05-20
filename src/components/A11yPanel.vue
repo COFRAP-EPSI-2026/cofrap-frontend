@@ -160,7 +160,33 @@
               </button>
             </div>
 
+            <!-- Lecture audio -->
+            <div class="a11y-row">
+              <label class="a11y-row__label" for="toggle-audio">
+                <Volume2 :size="16" aria-hidden="true" />
+                {{ t.a11y.audioReading }}
+              </label>
+              <button
+                id="toggle-audio"
+                type="button"
+                class="a11y-switch"
+                role="switch"
+                :aria-checked="audioReading"
+                @click="audioReading = !audioReading"
+              >
+                <span class="a11y-switch__thumb" />
+              </button>
+            </div>
+
           </div>
+
+          <!-- Bandeau actif lecture audio -->
+          <Transition name="audio-hint">
+            <p v-if="audioReading" class="a11y-audio-hint" aria-live="polite">
+              <Volume2 :size="13" aria-hidden="true" />
+              {{ t.a11y.audioReadingActive }}
+            </p>
+          </Transition>
 
           <!-- Réinitialiser -->
           <button type="button" class="a11y-reset" @click="reset">
@@ -176,7 +202,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
-import { Accessibility, AlignJustify, Keyboard, RotateCcw, SunMoon, Type, X, Zap } from 'lucide-vue-next'
+import { Accessibility, AlignJustify, Keyboard, RotateCcw, SunMoon, Type, Volume2, X, Zap } from 'lucide-vue-next'
 import { useLang } from '@/composables/useLang'
 import { useA11y } from '@/composables/useA11y'
 
@@ -184,7 +210,7 @@ const props = defineProps<{ open: boolean }>()
 defineEmits<{ close: [] }>()
 
 const { t } = useLang()
-const { fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, reset } = useA11y()
+const { fontSize, highContrast, reduceMotion, enhancedFocus, increasedSpacing, readableFont, audioReading, reset } = useA11y()
 
 const panelRef = ref<HTMLElement | null>(null)
 const closeRef = ref<HTMLElement | null>(null)
