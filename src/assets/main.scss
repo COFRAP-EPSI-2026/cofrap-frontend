@@ -82,6 +82,32 @@
   }
 }
 
+// ── Visually hidden (lecteurs d'écran uniquement) ─────────────────────────────
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ── Transitions de page ───────────────────────────────────────────────────────
+
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
 // ── Global ────────────────────────────────────────────────────────────────────
 
 * {
@@ -695,13 +721,17 @@ input {
 // ── QR image — fond toujours blanc pour la lisibilité par caméra ──────────────
 
 .qr-image {
-  width: 160px;
-  height: 160px;
+  width: 240px;
+  height: 240px;
   margin: 0 auto;
   padding: 12px;
   border-radius: 16px;
   background: #ffffff;
   border: 1px dashed var(--color-border-input);
+  // Mise à l'échelle sans lissage : les modules du QR restent nets — sinon le
+  // QR devient flou et les applications d'authentification refusent de le scanner.
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 
 // ── Error box ─────────────────────────────────────────────────────────────────
@@ -1230,29 +1260,30 @@ input {
   }
 }
 
-// Contraste renforcé
+// Contraste renforcé — couleurs COFRAP amplifiées, pas de bleu pur agressif
 [data-contrast='high'] {
-  --color-text: #000000;
-  --color-text-strong: #000000;
-  --color-text-muted: #1a1a1a;
-  --color-bg: #ffffff;
+  --color-text: #0a0f1a;
+  --color-text-strong: #0a0f1a;
+  --color-text-muted: #1a2540;
+  --color-bg: #f8faff;
   --color-surface: #ffffff;
-  --color-border: #000000;
-  --color-border-input: #000000;
-  --color-primary: #0000cc;
-  --color-primary-btn: #0000cc;
+  --color-border: #0a1a40;
+  --color-border-input: #0a1a40;
+  --color-primary: #0a2d80;
+  --color-primary-btn: #0a2d80;
+  --color-shadow: rgb(10 20 64 / 30%);
 }
 
 [data-theme='dark'][data-contrast='high'] {
   --color-text: #ffffff;
   --color-text-strong: #ffffff;
-  --color-text-muted: #e0e0e0;
-  --color-bg: #000000;
-  --color-surface: #0a0a0a;
-  --color-border: #ffffff;
-  --color-border-input: #ffffff;
-  --color-primary: #66aaff;
-  --color-primary-btn: #5599ff;
+  --color-text-muted: #d0dcf0;
+  --color-bg: #000810;
+  --color-surface: #060e20;
+  --color-border: #c0d0f0;
+  --color-border-input: #c0d0f0;
+  --color-primary: #7ab0ff;
+  --color-primary-btn: #5b93d8;
 }
 
 // Réduire les animations
@@ -1276,36 +1307,102 @@ input {
   }
 }
 
-// Espacement augmenté
+// Espacement augmenté — exclut les éléments à hauteur fixe
 [data-spacing='large'] {
   body {
-    line-height: 1.9;
+    line-height: 1.8;
     letter-spacing: 0.02em;
-    word-spacing: 0.1em;
+    word-spacing: 0.08em;
   }
 
   p,
   li,
   label,
-  span,
+  h1,
+  h2,
+  h3 {
+    line-height: 1.8;
+  }
+
+  // Les boutons et inputs ont une hauteur fixe : on ne touche pas leur line-height
   input,
-  button {
-    line-height: 1.9;
+  textarea {
+    letter-spacing: 0.02em;
   }
 }
 
 // Police plus lisible — OpenDyslexic
+// S'applique uniquement au contenu lisible, pas aux éléments UI chrome
 [data-readable-font='on'] {
   --font-readable: 'OpenDyslexic', 'Comic Sans MS', 'Trebuchet MS', Arial, sans-serif;
+  --font-ui: 'Montserrat', system-ui, sans-serif;
 
-  body {
+  // Contenu textuel → OpenDyslexic
+  p,
+  li,
+  h1,
+  h2,
+  h3,
+  h4,
+  label,
+  .auth-layout__description,
+  .auth-layout__title,
+  input,
+  textarea {
     font-family: var(--font-readable);
+    word-spacing: 0.1em;
+    line-height: 1.7;
   }
 
-  input,
+  // Éléments UI chrome → Montserrat (text-transform + OpenDyslexic = illisible)
   button,
-  textarea,
-  select {
-    font-family: var(--font-readable);
+  .auth-layout__badge,
+  .auth-button,
+  .auth-footer,
+  .app-header,
+  .a11y-panel,
+  .step-indicator {
+    font-family: var(--font-ui);
+  }
+
+  // Réalignement à gauche (OpenDyslexic + centré = illisible)
+  .auth-layout {
+    text-align: left;
+  }
+
+  .auth-layout__title,
+  .auth-layout__description {
+    text-align: left;
+  }
+
+  .auth-button {
+    text-align: center;
+  }
+}
+
+// ── Bouton loading spinner ────────────────────────────────────────────────────
+
+@keyframes btn-spin {
+  to {
+    transform: translateX(-50%) translateY(-50%) rotate(360deg);
+  }
+}
+
+.auth-button--loading {
+  position: relative;
+  pointer-events: none;
+  color: transparent !important;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgb(255 255 255 / 30%);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
   }
 }

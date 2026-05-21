@@ -89,7 +89,7 @@ The app is built into a **Docker image** (nginx + static files), deployed to Kub
 
 ```bash
 # Image
-docker build -t ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0 .
+docker build -t ghcr.io/cofrap-epsi-2026/cofrap-frontend:latest .
 
 # Deployment (Deployment + Service + Ingress chart)
 helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
@@ -108,7 +108,8 @@ helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
 ├── package.json                      # dependencies + Yarn scripts
 ├── vite.config.ts                    # Vite configuration
 ├── Dockerfile                        # multi-stage build node → nginx
-├── default.conf.template                        # nginx config (SPA fallback + /healthz)
+├── default.conf.template             # nginx config (SPA fallback + /healthz)
+├── .github/workflows/                # CI (lint + build) + Release Please
 ├── src/
 │   ├── views/                        # 4 views (home, login, register, renew)
 │   ├── components/                   # reusable components
@@ -138,8 +139,11 @@ Bilingual documentation: [`docs/fr/`](docs/fr/README.md) · [`docs/en/`](docs/en
 
 1. Fork + feature branch.
 2. `yarn install`, then code with `yarn dev`.
-3. `yarn format` + `yarn type-check` + `yarn build` (everything passes).
-4. PR to `main`.
+3. `yarn lint` + `yarn format` + `yarn type-check` + `yarn build` (everything passes).
+4. [Conventional](https://www.conventionalcommits.org/) commits (`feat:`, `fix:`…) — Release Please uses them for automated versioning.
+5. PR to `main`; CI replays lint + type-check + build.
+
+→ CI/CD and release details: [`docs/en/development.md`](docs/en/development.md).
 
 ## License
 

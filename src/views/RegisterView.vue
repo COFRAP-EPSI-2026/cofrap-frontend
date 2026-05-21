@@ -93,7 +93,12 @@
         </p>
       </div>
 
-      <button class="auth-button auth-button--primary" type="submit">
+      <button
+        class="auth-button auth-button--primary"
+        type="submit"
+        :disabled="loading"
+        :class="{ 'auth-button--loading': loading }"
+      >
         {{ t.register.activateButton }}
       </button>
     </form>
@@ -134,6 +139,7 @@ import { useLang } from '@/composables/useLang'
 const { t } = useLang()
 
 const step = ref(1)
+const loading = ref(false)
 
 watch(step, async (newStep) => {
   await nextTick()
@@ -156,7 +162,6 @@ const totpQr = ref('')
 // n'expose pas d'endpoint de validation à l'inscription).
 const totpInstance = ref<OTPAuth.TOTP | null>(null)
 
-const loading = ref(false)
 const apiError = ref('')
 const totpError = ref('')
 
@@ -211,9 +216,11 @@ const activateAccount = () => {
   const delta = totpInstance.value.validate({ token: totp.value, window: 1 })
   if (delta === null) {
     totpError.value = t.register.totpError
+    loading.value = false
     return
   }
 
   step.value = 4
+  loading.value = false
 }
 </script>
