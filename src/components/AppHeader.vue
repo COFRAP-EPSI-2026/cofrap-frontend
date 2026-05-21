@@ -8,7 +8,7 @@
         width="147"
         height="40"
       />
-      <span class="app-header__subtitle">{{ t.header.subtitle }}</span>
+      <span class="app-header__subtitle" v-html="t.header.subtitle"></span>
     </div>
 
     <div role="toolbar" aria-label="Actions de la page" class="app-header__actions">
