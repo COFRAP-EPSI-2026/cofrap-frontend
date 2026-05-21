@@ -24,6 +24,8 @@ export interface GeneratePasswordResponse {
   gendate: number
   /** QR code PNG encodé en base64 — contient le mot de passe en clair (usage unique). */
   qrcode_png_base64: string
+  /** Mot de passe en clair — présent uniquement au moment de la génération. */
+  password?: string
 }
 
 export interface Generate2faResponse {

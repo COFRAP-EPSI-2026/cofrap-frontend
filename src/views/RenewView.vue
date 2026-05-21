@@ -30,7 +30,44 @@
     <div v-if="step === 2" class="register-panel">
       <p class="warning-box">{{ t.renew.warning }}</p>
 
-      <img :src="passwordQr" :alt="t.renew.passwordQrAlt" class="qr-image" />
+      <figure class="qr-figure">
+        <img :src="passwordQr" :alt="t.renew.passwordQrAlt" class="qr-image" />
+        <figcaption class="qr-caption">{{ t.renew.passwordQrCaption }}</figcaption>
+      </figure>
+
+      <div class="pwd-display">
+        <div class="pwd-display__header">
+          <span class="pwd-display__title">{{ t.login.passwordLabel }}</span>
+          <button
+            type="button"
+            class="pwd-display__toggle"
+            :aria-pressed="showPassword"
+            @click="showPassword = !showPassword"
+          >
+            <EyeOff v-if="showPassword" :size="14" aria-hidden="true" />
+            <Eye v-else :size="14" aria-hidden="true" />
+            {{ showPassword ? t.renew.hideButton : t.renew.showButton }}
+          </button>
+        </div>
+        <div class="pwd-display__box">
+          <span
+            class="pwd-display__value"
+            :class="{ 'pwd-display__value--hidden': !showPassword }"
+          >
+            {{ showPassword ? (passwordText || t.renew.passwordUnavailable) : '●'.repeat(passwordText.length || 16) }}
+          </span>
+          <button
+            type="button"
+            class="pwd-display__copy"
+            :disabled="!passwordText"
+            :aria-label="copied ? t.renew.copiedButton : t.renew.copyButton"
+            @click="copyPassword"
+          >
+            <Check v-if="copied" :size="14" class="copy-check" aria-hidden="true" />
+            {{ copied ? '✓' : t.renew.copyButton }}
+          </button>
+        </div>
+      </div>
 
       <div aria-live="polite" aria-atomic="true">
         <p v-if="apiError" class="error-box" role="alert">{{ apiError }}</p>
@@ -102,6 +139,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
+import { Check, Copy, Eye, EyeOff } from 'lucide-vue-next'
+import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
 import { generatePassword, generate2fa, apiErrorMessage } from '@/components/openfaasApi'
@@ -128,6 +167,11 @@ const totp = ref('')
 const passwordQr = ref('')
 const totpQr = ref('')
 
+// Mot de passe en clair renvoyé par le backend (disponible uniquement à la génération).
+const passwordText = ref('')
+const showPassword = ref(false)
+const copied = ref(false)
+
 // Instance TOTP reconstruite depuis l'`otpauth_uri` du backend — sert à
 // vérifier côté client que l'utilisateur a bien scanné le nouveau QR.
 const totpInstance = ref<OTPAuth.TOTP | null>(null)
@@ -142,6 +186,42 @@ const stepContent = computed(() => {
   return { title: '', description: '' }
 })
 
+/**
+ * Décode le contenu d'un QR code depuis une data URL (PNG base64).
+ * Utilise jsQR — fonctionne sur tous les navigateurs (Chrome, Firefox, Safari…).
+ */
+const decodeQrFromDataUrl = async (dataUrl: string): Promise<string> => {
+  try {
+    const img = new Image()
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve()
+      img.onerror = () => reject(new Error('img load'))
+      img.src = dataUrl
+    })
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth || img.width
+    canvas.height = img.naturalHeight || img.height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return ''
+    ctx.drawImage(img, 0, 0)
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const code = jsQR(imageData.data, imageData.width, imageData.height)
+    return code?.data ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/** Copie le mot de passe dans le presse-papier et affiche la coche pendant 2 s. */
+const copyPassword = async () => {
+  if (!passwordText.value) return
+  await navigator.clipboard.writeText(passwordText.value)
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
+}
+
 /** Étape 1 → le backend régénère le mot de passe et renvoie son QR. */
 const renewCredentials = async () => {
   if (!username.value.trim() || loading.value) return
@@ -149,7 +229,15 @@ const renewCredentials = async () => {
   loading.value = true
   try {
     const res = await generatePassword(username.value.trim())
-    passwordQr.value = `data:image/png;base64,${res.qrcode_png_base64}`
+    const dataUrl = `data:image/png;base64,${res.qrcode_png_base64}`
+    passwordQr.value = dataUrl
+    // Priorité : champs possibles du backend → décodage du QR en fallback.
+    const raw = res as Record<string, unknown>
+    passwordText.value =
+      (raw.password as string | undefined) ??
+      (raw.generated_password as string | undefined) ??
+      (raw.plain_password as string | undefined) ??
+      (await decodeQrFromDataUrl(dataUrl))
     step.value = 2
   } catch (error) {
     apiError.value = apiErrorMessage(error)
