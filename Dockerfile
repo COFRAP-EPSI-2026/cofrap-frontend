@@ -17,7 +17,8 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine
 
 LABEL org.opencontainers.image.source="https://github.com/COFRAP-EPSI-2026/cofrap-frontend" \
       org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.title="cofrap-frontend"
+      org.opencontainers.image.title="cofrap-frontend" \
+      org.opencontainers.image.description="Frontend COFRAP — SPA Vue 3 (création de compte, authentification, renouvellement) servie par nginx (PoC MSPR TPRE912)."
 
 # Config nginx en template : `envsubst` substitue ${OPENFAAS_GATEWAY} au démarrage.
 # NGINX_ENVSUBST_FILTER limite la substitution aux variables OPENFAAS_* — les

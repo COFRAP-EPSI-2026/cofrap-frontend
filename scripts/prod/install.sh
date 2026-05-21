@@ -2,10 +2,10 @@
 # Deploie le frontend COFRAP (chart cofrap-frontend) sur un cluster Kubernetes.
 #
 # Usage :
-#   ./scripts/install.sh                                       # defauts
-#   INGRESS_HOST=cofrap.mondomaine.fr ./scripts/install.sh     # hote Ingress
-#   INGRESS_ENABLED=false ./scripts/install.sh                 # pas d'Ingress
-#   NAMESPACE=cofrap IMAGE_TAG=2026.1.0 ./scripts/install.sh   # overrides
+#   ./scripts/prod/install.sh                                       # defauts
+#   INGRESS_HOST=cofrap.mondomaine.fr ./scripts/prod/install.sh     # hote Ingress
+#   INGRESS_ENABLED=false ./scripts/prod/install.sh                 # pas d'Ingress
+#   NAMESPACE=cofrap IMAGE_TAG=2026.1.0 ./scripts/prod/install.sh   # overrides
 #
 # INGRESS_ENABLED=false : utile derriere un Cloudflare Tunnel (ou autre proxy)
 # qui pointe directement sur le Service cofrap-frontend — l'Ingress est inutile.
@@ -25,7 +25,7 @@ IMAGE_TAG="${IMAGE_TAG:-}"
 IMAGE_REPOSITORY="${IMAGE_REPOSITORY:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHART_PATH="${SCRIPT_DIR}/../deploy/helm/cofrap-frontend"
+CHART_PATH="${SCRIPT_DIR}/../../deploy/helm/cofrap-frontend"
 
 red()   { printf '\033[31m%s\033[0m\n' "$*"; }
 green() { printf '\033[32m%s\033[0m\n' "$*"; }
@@ -34,7 +34,7 @@ blue()  { printf '\033[34m> %s\033[0m\n' "$*"; }
 require() { command -v "$1" >/dev/null 2>&1 || { red "Manquant : $1"; exit 1; }; }
 
 # --- 1. Prerequis -----------------------------------------------------------
-blue "Verification des prerequis"
+blue "Vérification des prérequis"
 require kubectl
 require helm
 kubectl cluster-info >/dev/null || { red "kubectl ne peut pas joindre le cluster"; exit 1; }

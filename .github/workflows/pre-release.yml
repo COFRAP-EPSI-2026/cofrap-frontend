@@ -1,0 +1,66 @@
+name: Pre-release (dev)
+
+# Sur chaque push de la branche `dev` :
+#   1. `validate` rejoue toute la CI (lint + type-check + build + image) via ci.yml.
+#   2. Si tout est vert, `publish` construit et pousse l'image de pré-release
+#      sur GHCR, taguée `dev` (mobile) et `dev-<sha>` (traçable).
+#
+# Le numéro de version stable (2026.X.Y) n'est calculé qu'au merge sur `main`
+# par Release Please — ici on ne produit qu'une image de test de la branche dev.
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validation (CI)
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Build & push dev image
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/cofrap-frontend
+          tags: |
+            type=raw,value=dev
+            type=sha,prefix=dev-,format=short
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
