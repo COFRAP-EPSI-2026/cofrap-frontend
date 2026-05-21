@@ -38,9 +38,6 @@
         <span>{{ t.a11y.buttonLabel }}</span>
       </button>
 
-      <button type="button" :aria-label="t.header.helpButtonLabel">
-        <HelpCircle :size="18" aria-hidden="true" />
-      </button>
     </div>
 
     <A11yPanel :open="a11yOpen" @close="a11yOpen = false" />
@@ -49,7 +46,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Accessibility, HelpCircle, Languages, Moon, Sun } from 'lucide-vue-next'
+import { Accessibility, Languages, Moon, Sun } from 'lucide-vue-next'
 import { useLang } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import A11yPanel from '@/components/A11yPanel.vue'

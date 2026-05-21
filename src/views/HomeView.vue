@@ -13,7 +13,6 @@
     <template #footer>
       <div class="auth-footer">
         <span>{{ t.home.footerVersion }}</span>
-        <a href="#">{{ t.home.footerHelp }}</a>
       </div>
     </template>
   </AuthLayout>
