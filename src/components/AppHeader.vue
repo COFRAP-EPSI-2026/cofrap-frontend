@@ -41,12 +41,19 @@
         <span>{{ t.a11y.buttonLabel }}</span>
       </button>
 
-      <button type="button" :aria-label="t.header.helpButtonLabel">
+      <button
+        type="button"
+        :aria-label="t.help.buttonLabel"
+        :aria-expanded="helpOpen"
+        :aria-controls="'help-panel'"
+        @click="helpOpen = !helpOpen"
+      >
         <HelpCircle :size="18" aria-hidden="true" />
       </button>
     </div>
 
     <A11yPanel :open="a11yOpen" @close="a11yOpen = false" />
+    <HelpPanel :open="helpOpen" @close="helpOpen = false" />
   </header>
 </template>
 
@@ -56,9 +63,11 @@ import { Accessibility, HelpCircle, Languages, Moon, Sun } from 'lucide-vue-next
 import { useLang } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import A11yPanel from '@/components/A11yPanel.vue'
+import HelpPanel from '@/components/HelpPanel.vue'
 
 const { t, currentLang, switchLang } = useLang()
 const { isDark, toggleTheme } = useTheme()
 
 const a11yOpen = ref(false)
+const helpOpen = ref(false)
 </script>

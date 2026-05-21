@@ -1,6 +1,24 @@
 export const fr = {
   skipLink: 'Passer au contenu principal',
 
+  help: {
+    buttonLabel: 'Aide',
+    panelTitle: 'Aide',
+    close: "Fermer le panneau d'aide",
+    section1Title: 'Double authentification',
+    section1Text:
+      'La double authentification ajoute une étape de sécurité supplémentaire afin de protéger votre compte même si votre mot de passe est compromis.',
+    section2Title: 'Expiration des mots de passe',
+    section2Text:
+      'Les mots de passe expirent automatiquement afin de limiter les risques liés à la réutilisation ou à la compromission des identifiants.',
+    section3Title: 'Blocage après plusieurs tentatives',
+    section3Text:
+      'Après plusieurs tentatives de connexion échouées, le compte est temporairement bloqué afin de limiter les attaques par force brute.',
+    section4Title: 'Accessibilité',
+    section4Text:
+      "L'application propose plusieurs options d'accessibilité permettant d'améliorer le confort visuel, la navigation clavier et la lisibilité.",
+  },
+
   a11y: {
     buttonLabel: "Adapter l'affichage",
     panelTitle: "Adapter l'affichage",

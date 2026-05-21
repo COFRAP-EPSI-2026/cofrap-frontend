@@ -1,6 +1,24 @@
 export const en = {
   skipLink: 'Skip to main content',
 
+  help: {
+    buttonLabel: 'Help',
+    panelTitle: 'Help',
+    close: 'Close help panel',
+    section1Title: 'Two-factor authentication',
+    section1Text:
+      'Two-factor authentication adds an extra security step to protect your account even if your password is compromised.',
+    section2Title: 'Password expiration',
+    section2Text:
+      'Passwords expire automatically to limit risks related to credential reuse or compromise.',
+    section3Title: 'Lockout after multiple attempts',
+    section3Text:
+      'After several failed login attempts, the account is temporarily locked to prevent brute-force attacks.',
+    section4Title: 'Accessibility',
+    section4Text:
+      'The application provides several accessibility options to improve visual comfort, keyboard navigation and readability.',
+  },
+
   a11y: {
     buttonLabel: 'Adapt display',
     panelTitle: 'Adapt display',
