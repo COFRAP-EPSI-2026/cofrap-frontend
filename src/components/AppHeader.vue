@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <img
-        src="/logo-cofrap-v.svg"
+        src="/logo-cofrap.svg"
         alt="COFRAP"
         class="app-header__logo-img"
         width="147"
@@ -41,6 +41,7 @@
     </div>
 
     <A11yPanel :open="a11yOpen" @close="a11yOpen = false" />
+    <HelpPanel :open="helpOpen" @close="helpOpen = false" />
   </header>
 </template>
 
@@ -50,9 +51,11 @@ import { Accessibility, Languages, Moon, Sun } from 'lucide-vue-next'
 import { useLang } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import A11yPanel from '@/components/A11yPanel.vue'
+import HelpPanel from '@/components/HelpPanel.vue'
 
 const { t, currentLang, switchLang } = useLang()
 const { isDark, toggleTheme } = useTheme()
 
 const a11yOpen = ref(false)
+const helpOpen = ref(false)
 </script>
