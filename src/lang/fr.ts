@@ -1,6 +1,24 @@
 export const fr = {
   skipLink: 'Passer au contenu principal',
 
+  help: {
+    buttonLabel: 'Aide',
+    panelTitle: 'Aide',
+    close: "Fermer le panneau d'aide",
+    section1Title: 'Double authentification',
+    section1Text:
+      'La double authentification ajoute une étape de sécurité supplémentaire afin de protéger votre compte même si votre mot de passe est compromis.',
+    section2Title: 'Expiration des mots de passe',
+    section2Text:
+      'Les mots de passe expirent automatiquement afin de limiter les risques liés à la réutilisation ou à la compromission des identifiants.',
+    section3Title: 'Blocage après plusieurs tentatives',
+    section3Text:
+      'Après plusieurs tentatives de connexion échouées, le compte est temporairement bloqué afin de limiter les attaques par force brute.',
+    section4Title: 'Accessibilité',
+    section4Text:
+      "L'application propose plusieurs options d'accessibilité permettant d'améliorer le confort visuel, la navigation clavier et la lisibilité.",
+  },
+
   a11y: {
     buttonLabel: "Adapter l'affichage",
     panelTitle: "Adapter l'affichage",
@@ -25,7 +43,7 @@ export const fr = {
   },
 
   header: {
-    subtitle: "Compagnie Française de Réalisation d'Applicatifs Professionnels",
+    subtitle: "Compagnie Française de Réalisation<br />d'Applicatifs Professionnels",
     langButtonLabel: 'Switch to English',
     darkModeButton: 'Activer le mode sombre',
     lightModeButton: 'Activer le mode clair',
@@ -72,10 +90,10 @@ export const fr = {
   register: {
     badge: 'Inscription',
     stepsAriaLabel: "Progression de l'inscription",
-    step1Label: '1 Identifiant',
-    step2Label: '2 Mot de passe',
-    step3Label: '3 2FA',
-    step4Label: '4 Connexion',
+    step1Label: 'Identifiant',
+    step2Label: 'Mot de passe',
+    step3Label: '2FA',
+    step4Label: 'Connexion',
     step1Title: 'Créer votre compte',
     step1Description:
       'Votre mot de passe sera généré automatiquement et transmis via un QR code à usage unique.',
@@ -89,7 +107,11 @@ export const fr = {
     usernamePlaceholder: 'prenom.nom',
     generateButton: 'Générer mon mot de passe',
     passwordQrAlt: 'QR code contenant le mot de passe généré',
+    passwordQrCaption: 'QR code à usage unique — il expirera à la fermeture de cette page.',
     warning: 'Conservez-le maintenant : il ne sera pas affiché de nouveau.',
+    altAccessible: 'Alternative accessible',
+    showButton: 'Afficher',
+    hideButton: 'Masquer',
     continueButton: 'Continuer vers la 2FA',
     totpQrAlt: 'QR code pour configurer la double authentification TOTP',
     totpLabel: 'Entrez le code à 6 chiffres',
@@ -103,8 +125,9 @@ export const fr = {
     successButton: 'Accéder à mes applicatifs',
     footerBackHome: 'Retour accueil',
     footerHaveAccount: 'Déjà un compte ?',
-    copyButton: 'Copier le mot de passe',
-    copiedButton: 'Mot de passe copié',
+    passwordUnavailable: 'Scannez le QR code pour récupérer votre mot de passe.',
+    copyButton: 'Copier',
+    copiedButton: 'Copié !',
     apiError: 'Erreur lors de la communication avec le serveur. Réessayez.',
   },
 
@@ -125,6 +148,10 @@ export const fr = {
       'Vos identifiants ont expiré. Un nouveau mot de passe et une nouvelle double authentification vont être générés.',
     renewButton: 'Renouveler mes identifiants',
     passwordQrAlt: 'QR code contenant le nouveau mot de passe généré',
+    passwordQrCaption: 'QR code à usage unique — il expirera à la fermeture de cette page.',
+    altAccessible: 'Alternative accessible',
+    showButton: 'Afficher',
+    hideButton: 'Masquer',
     continueButton: 'Continuer vers la 2FA',
     totpQrAlt: 'QR code pour configurer la nouvelle double authentification TOTP',
     totpLabel: 'Entrez le code à 6 chiffres',
@@ -136,7 +163,8 @@ export const fr = {
     successButton: 'Retour à la connexion',
     footerBackHome: 'Retour accueil',
     footerLogin: 'Connexion',
-    copyButton: 'Copier le mot de passe',
-    copiedButton: 'Mot de passe copié',
+    passwordUnavailable: 'Scannez le QR code pour récupérer votre mot de passe.',
+    copyButton: 'Copier',
+    copiedButton: 'Copié !',
   },
 }

@@ -2,13 +2,13 @@
   <header class="app-header">
     <div class="app-header__brand">
       <img
-        src="/logo-cofrap-v.svg"
+        src="/logo-cofrap.svg"
         alt="COFRAP"
         class="app-header__logo-img"
         width="147"
         height="40"
       />
-      <span class="app-header__subtitle">{{ t.header.subtitle }}</span>
+      <span class="app-header__subtitle" v-html="t.header.subtitle"></span>
     </div>
 
     <div role="toolbar" aria-label="Actions de la page" class="app-header__actions">
@@ -38,24 +38,24 @@
         <span>{{ t.a11y.buttonLabel }}</span>
       </button>
 
-      <button type="button" :aria-label="t.header.helpButtonLabel">
-        <HelpCircle :size="18" aria-hidden="true" />
-      </button>
     </div>
 
     <A11yPanel :open="a11yOpen" @close="a11yOpen = false" />
+    <HelpPanel :open="helpOpen" @close="helpOpen = false" />
   </header>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Accessibility, HelpCircle, Languages, Moon, Sun } from 'lucide-vue-next'
+import { Accessibility, Languages, Moon, Sun } from 'lucide-vue-next'
 import { useLang } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import A11yPanel from '@/components/A11yPanel.vue'
+import HelpPanel from '@/components/HelpPanel.vue'
 
 const { t, currentLang, switchLang } = useLang()
 const { isDark, toggleTheme } = useTheme()
 
 const a11yOpen = ref(false)
+const helpOpen = ref(false)
 </script>
