@@ -3,6 +3,7 @@
     :badge="t.renew.badge"
     :title="stepContent.title"
     :description="stepContent.description"
+    :spacious="step !== 2"
   >
     <form v-if="step === 1" class="register-panel" @submit.prevent="renewCredentials">
       <p class="warning-box">{{ t.renew.warning }}</p>
@@ -64,7 +65,7 @@
             @click="copyPassword"
           >
             <Check v-if="copied" :size="14" class="copy-check" aria-hidden="true" />
-            {{ copied ? '✓' : t.renew.copyButton }}
+            {{ copied ? t.renew.copiedButton : t.renew.copyButton }}
           </button>
         </div>
       </div>
@@ -83,7 +84,7 @@
       </button>
     </div>
 
-    <form v-if="step === 3" class="register-panel" @submit.prevent="activateRenewal">
+    <form v-if="step === 3" class="register-panel register-panel--spacious" @submit.prevent="activateRenewal">
       <img :src="totpQr" :alt="t.renew.totpQrAlt" class="qr-image" />
 
       <div class="auth-form__group">
@@ -217,9 +218,6 @@ const copyPassword = async () => {
   if (!passwordText.value) return
   await navigator.clipboard.writeText(passwordText.value)
   copied.value = true
-  setTimeout(() => {
-    copied.value = false
-  }, 2000)
 }
 
 /** Étape 1 → le backend régénère le mot de passe et renvoie son QR. */

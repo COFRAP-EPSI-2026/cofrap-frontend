@@ -71,10 +71,10 @@ export const en = {
   register: {
     badge: 'Registration',
     stepsAriaLabel: 'Registration progress',
-    step1Label: '1 Username',
-    step2Label: '2 Password',
-    step3Label: '3 2FA',
-    step4Label: '4 Done',
+    step1Label: 'Username',
+    step2Label: 'Password',
+    step3Label: '2FA',
+    step4Label: 'Done',
     step1Title: 'Create your account',
     step1Description:
       'Your password will be automatically generated and delivered via a one-time QR code.',

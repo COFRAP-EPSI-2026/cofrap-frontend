@@ -296,10 +296,10 @@ input {
   &__content {
     display: flex;
     justify-content: center;
-    padding: 48px 16px;
+    padding: 20px;
 
     @media (max-width: 600px) {
-      padding: 24px 12px;
+      padding: 16px 12px;
     }
   }
 }
@@ -325,26 +325,26 @@ input {
 
   &__badge {
     display: inline-flex;
-    padding: 8px 16px;
+    padding: 5px 14px;
     border-radius: 999px;
     background: var(--color-badge-bg);
     color: var(--color-badge-text);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   &__title {
-    margin: 20px 0 16px;
-    font-size: 32px;
-    line-height: 1.1;
+    margin: 12px 0 8px;
+    font-size: 26px;
+    line-height: 1.15;
     font-weight: 800;
     color: var(--color-text-strong);
 
     @media (max-width: 600px) {
-      font-size: 26px;
-      margin: 16px 0 12px;
+      font-size: 22px;
+      margin: 10px 0 6px;
     }
 
     &:focus {
@@ -355,18 +355,19 @@ input {
   &__description {
     margin: 0;
     color: var(--color-text-muted);
-    line-height: 1.7;
+    font-size: 15px;
+    line-height: 1.6;
 
     @media (max-width: 600px) {
-      font-size: 14px;
+      font-size: 12px;
     }
   }
 
   &__body {
-    margin-top: 32px;
+    margin-top: 16px;
 
     @media (max-width: 600px) {
-      margin-top: 24px;
+      margin-top: 12px;
     }
   }
 
@@ -377,6 +378,50 @@ input {
 
     @media (max-width: 600px) {
       margin-top: 24px;
+    }
+  }
+
+  // Étapes avec peu d'éléments : plus d'espace dans l'en-tête de la carte
+  &--spacious {
+    .auth-layout__badge {
+      padding: 7px 18px;
+      font-size: 12px;
+    }
+
+    .auth-layout__title {
+      margin: 24px 0 16px;
+      font-size: 30px;
+    }
+
+    .auth-layout__description {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .auth-layout__body {
+      margin-top: 36px;
+    }
+
+    // Formulaires légers (étape 1, étape 3) : plus d'espace entre les champs
+    .auth-form {
+      gap: 28px;
+    }
+
+    // Accueil : plus d'espace entre les boutons
+    .auth-actions {
+      gap: 24px;
+      margin-top: 16px;
+    }
+
+    // Succès : icône + titre + message + bouton bien aérés
+    .success-panel {
+      gap: 24px;
+
+      &__icon {
+        width: 72px;
+        height: 72px;
+        font-size: 36px;
+      }
     }
   }
 }
@@ -582,26 +627,84 @@ input {
 
 .steps {
   display: flex;
+  align-items: center;
   justify-content: center;
+  flex-wrap: nowrap;
   gap: 8px;
   margin-bottom: 24px;
-  font-size: 12px;
-  color: var(--color-text-faint);
 
   &__item {
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--color-text-faint);
+    white-space: nowrap;
+
+    &--done {
+      .steps__circle {
+        background: #16a34a;
+        border-color: #16a34a;
+        color: #fff;
+      }
+    }
 
     &--active {
-      color: var(--color-primary);
+      color: var(--color-text-strong);
+      font-weight: 700;
+
+      .steps__circle {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #fff;
+      }
     }
+
+    &--pending {
+      .steps__circle {
+        background: var(--color-surface-subtle);
+        border-color: var(--color-border);
+        color: var(--color-text-faint);
+      }
+    }
+  }
+
+  &__circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s;
+  }
+
+  &__label {
+    display: inline;
   }
 }
 
 // ── Register panel ────────────────────────────────────────────────────────────
 
 .register-panel {
-  display: grid;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+
+  // Étapes avec peu d'éléments : on respire davantage
+  &--spacious {
+    gap: 28px;
+  }
 }
 
 // ── Fake QR placeholder ───────────────────────────────────────────────────────
@@ -681,22 +784,22 @@ input {
 .warning-box {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin: 0;
-  padding: 16px;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 14px;
   border-radius: 12px;
   background: var(--color-warning-bg);
   border: 2px solid var(--color-warning-border);
   color: var(--color-warning-text);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.5;
 
   &::before {
     content: '⚠️';
-    font-size: 20px;
+    font-size: 16px;
     flex-shrink: 0;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 }
 
@@ -706,6 +809,11 @@ input {
   display: grid;
   gap: 16px;
   text-align: center;
+
+  .auth-button {
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
 
   &__icon {
     width: 64px;
@@ -737,15 +845,15 @@ input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin: 0;
 }
 
 .qr-image {
-  width: 240px;
-  height: 240px;
-  padding: 12px;
-  border-radius: 16px;
+  width: 180px;
+  height: 180px;
+  padding: 10px;
+  border-radius: 14px;
   background: #ffffff;
   border: 1px dashed var(--color-border-input);
   // Mise à l'échelle sans lissage : les modules du QR restent nets — sinon le
@@ -784,7 +892,9 @@ input {
   &__toggle {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 4px;
+    min-width: 82px; // évite le décalage Afficher ↔ Masquer
     background: none;
     border: none;
     color: var(--color-primary);

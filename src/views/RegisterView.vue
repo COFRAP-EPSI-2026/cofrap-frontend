@@ -3,32 +3,53 @@
     :badge="t.register.badge"
     :title="stepContent.title"
     :description="stepContent.description"
+    :spacious="step !== 2"
   >
     <div class="steps" role="list" :aria-label="t.register.stepsAriaLabel">
       <span
         role="listitem"
-        :class="['steps__item', { 'steps__item--active': step >= 1 }]"
+        :class="['steps__item', step > 1 ? 'steps__item--done' : step === 1 ? 'steps__item--active' : 'steps__item--pending']"
         :aria-current="step === 1 ? 'step' : undefined"
-        >{{ t.register.step1Label }}</span
       >
+        <span class="steps__circle" aria-hidden="true">
+          <Check v-if="step > 1" :size="12" />
+          <span v-else>1</span>
+        </span>
+        <span class="steps__label">{{ t.register.step1Label }}</span>
+      </span>
       <span
         role="listitem"
-        :class="['steps__item', { 'steps__item--active': step >= 2 }]"
+        :class="['steps__item', step > 2 ? 'steps__item--done' : step === 2 ? 'steps__item--active' : 'steps__item--pending']"
         :aria-current="step === 2 ? 'step' : undefined"
-        >{{ t.register.step2Label }}</span
       >
+        <span class="steps__circle" aria-hidden="true">
+          <Check v-if="step > 2" :size="12" />
+          <span v-else>2</span>
+        </span>
+        <span class="steps__label">{{ t.register.step2Label }}</span>
+      </span>
       <span
         role="listitem"
-        :class="['steps__item', { 'steps__item--active': step >= 3 }]"
+        :class="['steps__item', step > 3 ? 'steps__item--done' : step === 3 ? 'steps__item--active' : 'steps__item--pending']"
         :aria-current="step === 3 ? 'step' : undefined"
-        >{{ t.register.step3Label }}</span
       >
+        <span class="steps__circle" aria-hidden="true">
+          <Check v-if="step > 3" :size="12" />
+          <span v-else>3</span>
+        </span>
+        <span class="steps__label">{{ t.register.step3Label }}</span>
+      </span>
       <span
         role="listitem"
-        :class="['steps__item', { 'steps__item--active': step >= 4 }]"
+        :class="['steps__item', step > 4 ? 'steps__item--done' : step === 4 ? 'steps__item--active' : 'steps__item--pending']"
         :aria-current="step === 4 ? 'step' : undefined"
-        >{{ t.register.step4Label }}</span
       >
+        <span class="steps__circle" aria-hidden="true">
+          <Check v-if="step > 4" :size="12" />
+          <span v-else>4</span>
+        </span>
+        <span class="steps__label">{{ t.register.step4Label }}</span>
+      </span>
     </div>
 
     <form v-if="step === 1" class="auth-form" @submit.prevent="submitUsername">
@@ -89,7 +110,7 @@
             @click="copyPassword"
           >
             <Check v-if="copied" :size="14" class="copy-check" aria-hidden="true" />
-            {{ copied ? '✓' : t.register.copyButton }}
+            {{ copied ? t.register.copiedButton : t.register.copyButton }}
           </button>
         </div>
       </div>
@@ -108,7 +129,7 @@
       </button>
     </div>
 
-    <form v-if="step === 3" class="register-panel" @submit.prevent="activateAccount">
+    <form v-if="step === 3" class="register-panel register-panel--spacious" @submit.prevent="activateAccount">
       <img :src="totpQr" :alt="t.register.totpQrAlt" class="qr-image" />
 
       <div class="auth-form__group">
@@ -250,9 +271,6 @@ const copyPassword = async () => {
   if (!passwordText.value) return
   await navigator.clipboard.writeText(passwordText.value)
   copied.value = true
-  setTimeout(() => {
-    copied.value = false
-  }, 2000)
 }
 
 /** Étape 1 → le backend génère le mot de passe et renvoie son QR. */

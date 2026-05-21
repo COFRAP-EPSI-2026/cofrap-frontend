@@ -25,7 +25,7 @@ export const fr = {
   },
 
   header: {
-    subtitle: "Compagnie Française de Réalisation d'Applicatifs Professionnels",
+    subtitle: "Compagnie Française de Réalisation <br />d'Applicatifs Professionnels",
     langButtonLabel: 'Switch to English',
     darkModeButton: 'Activer le mode sombre',
     lightModeButton: 'Activer le mode clair',
@@ -72,10 +72,10 @@ export const fr = {
   register: {
     badge: 'Inscription',
     stepsAriaLabel: "Progression de l'inscription",
-    step1Label: '1 Identifiant',
-    step2Label: '2 Mot de passe',
-    step3Label: '3 2FA',
-    step4Label: '4 Connexion',
+    step1Label: 'Identifiant',
+    step2Label: 'Mot de passe',
+    step3Label: '2FA',
+    step4Label: 'Connexion',
     step1Title: 'Créer votre compte',
     step1Description:
       'Votre mot de passe sera généré automatiquement et transmis via un QR code à usage unique.',

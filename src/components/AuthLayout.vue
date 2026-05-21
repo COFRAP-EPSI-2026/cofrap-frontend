@@ -5,7 +5,7 @@
     <AppHeader />
 
     <section id="main-content" class="auth-page__content">
-      <article class="auth-layout">
+      <article :class="['auth-layout', { 'auth-layout--spacious': spacious }]">
         <p v-if="badge" class="auth-layout__badge">
           {{ badge }}
         </p>
@@ -41,6 +41,7 @@ defineProps<{
   badge?: string
   title: string
   description?: string
+  spacious?: boolean
 }>()
 
 const titleRef = ref<HTMLElement | null>(null)
