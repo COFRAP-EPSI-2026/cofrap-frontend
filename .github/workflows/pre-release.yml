@@ -11,7 +11,9 @@ name: Pre-release (dev)
 on:
   push:
     branches: [dev]
-
+  merge_group:
+    branches: [dev]
+    
 permissions:
   contents: read
 
