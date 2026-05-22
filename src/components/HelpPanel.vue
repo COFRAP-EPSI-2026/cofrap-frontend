@@ -1,12 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="help-backdrop">
-      <div
-        v-if="open"
-        class="help-backdrop"
-        aria-hidden="true"
-        @click="$emit('close')"
-      />
+      <div v-if="open" class="help-backdrop" aria-hidden="true" @click="$emit('close')" />
     </Transition>
 
     <Transition name="help-panel">
@@ -37,11 +32,7 @@
         </div>
 
         <div class="help-panel__body">
-          <div
-            v-for="section in sections"
-            :key="section.id"
-            class="help-section"
-          >
+          <div v-for="section in sections" :key="section.id" class="help-section">
             <div class="help-section__icon-wrap" aria-hidden="true">
               <component :is="section.icon" :size="17" />
             </div>
@@ -58,7 +49,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { Accessibility, Clock, HelpCircle, ShieldAlert, ShieldCheck, X } from 'lucide-vue-next'
+import { Accessibility, Clock, HelpCircle, ShieldAlert, ShieldCheck, X } from '@lucide/vue'
 import { useLang } from '@/composables/useLang'
 
 const props = defineProps<{ open: boolean }>()

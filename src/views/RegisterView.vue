@@ -8,7 +8,14 @@
     <div class="steps" role="list" :aria-label="t.register.stepsAriaLabel">
       <span
         role="listitem"
-        :class="['steps__item', step > 1 ? 'steps__item--done' : step === 1 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 1
+            ? 'steps__item--done'
+            : step === 1
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 1 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -19,7 +26,14 @@
       </span>
       <span
         role="listitem"
-        :class="['steps__item', step > 2 ? 'steps__item--done' : step === 2 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 2
+            ? 'steps__item--done'
+            : step === 2
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 2 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -30,7 +44,14 @@
       </span>
       <span
         role="listitem"
-        :class="['steps__item', step > 3 ? 'steps__item--done' : step === 3 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 3
+            ? 'steps__item--done'
+            : step === 3
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 3 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -41,7 +62,14 @@
       </span>
       <span
         role="listitem"
-        :class="['steps__item', step > 4 ? 'steps__item--done' : step === 4 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 4
+            ? 'steps__item--done'
+            : step === 4
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 4 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -96,11 +124,12 @@
           </button>
         </div>
         <div class="pwd-display__box">
-          <span
-            class="pwd-display__value"
-            :class="{ 'pwd-display__value--hidden': !showPassword }"
-          >
-            {{ showPassword ? (passwordText || t.register.passwordUnavailable) : '●'.repeat(passwordText.length || 16) }}
+          <span class="pwd-display__value" :class="{ 'pwd-display__value--hidden': !showPassword }">
+            {{
+              showPassword
+                ? passwordText || t.register.passwordUnavailable
+                : '●'.repeat(passwordText.length || 16)
+            }}
           </span>
           <button
             type="button"
@@ -129,8 +158,33 @@
       </button>
     </div>
 
-    <form v-if="step === 3" class="register-panel register-panel--spacious" @submit.prevent="activateAccount">
+    <form
+      v-if="step === 3"
+      class="register-panel register-panel--spacious"
+      @submit.prevent="activateAccount"
+    >
       <img :src="totpQr" :alt="t.register.totpQrAlt" class="qr-image" />
+
+      <!-- Aide mobile : impossible de scanner son propre écran -->
+      <div class="totp-mobile-help">
+        <a :href="totpUri" class="totp-open-btn" target="_blank" rel="noopener noreferrer">
+          <Smartphone :size="15" aria-hidden="true" />
+          {{ t.register.openInAppButton }}
+        </a>
+        <details class="totp-secret-details">
+          <summary>{{ t.register.showSecretLabel }}</summary>
+          <div class="totp-secret-box">
+            <p class="totp-secret-hint">{{ t.register.totpSecretHint }}</p>
+            <div class="totp-secret-row">
+              <code class="totp-secret-value">{{ totpSecret }}</code>
+              <button type="button" class="totp-secret-copy" @click.stop="copySecret">
+                <Check v-if="secretCopied" :size="13" aria-hidden="true" />
+                {{ secretCopied ? t.register.copiedButton : t.register.copySecretButton }}
+              </button>
+            </div>
+          </div>
+        </details>
+      </div>
 
       <div class="auth-form__group">
         <label for="totp">{{ t.register.totpLabel }}</label>
@@ -158,6 +212,10 @@
         :class="{ 'auth-button--loading': loading }"
       >
         {{ t.register.activateButton }}
+      </button>
+
+      <button v-if="passwordText" type="button" class="recopier-mdp-btn" @click="recopyPassword">
+        {{ passwordCopied ? t.register.copiedButton : t.register.recopyPasswordButton }}
       </button>
     </form>
 
@@ -187,9 +245,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
-import { Check, Copy, Eye, EyeOff } from 'lucide-vue-next'
+import { Check, Eye, EyeOff, Smartphone } from '@lucide/vue'
 import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -227,8 +285,80 @@ const copied = ref(false)
 // n'expose pas d'endpoint de validation à l'inscription).
 const totpInstance = ref<OTPAuth.TOTP | null>(null)
 
+// Aide mobile : lien otpauth:// + clé base32 pour saisie manuelle.
+const totpUri = computed(() => totpInstance.value?.toString() ?? '')
+const totpSecret = computed(() => totpInstance.value?.secret.base32 ?? '')
+
+const secretCopied = ref(false)
+const passwordCopied = ref(false)
+
+const copySecret = async () => {
+  if (!totpSecret.value) return
+  await navigator.clipboard.writeText(totpSecret.value)
+  secretCopied.value = true
+}
+
+const recopyPassword = async () => {
+  if (!passwordText.value) return
+  await navigator.clipboard.writeText(passwordText.value)
+  passwordCopied.value = true
+}
+
 const apiError = ref('')
 const totpError = ref('')
+
+// ── Persistance mobile — survie aux aller-retours vers l'app TOTP ─────────────
+// Sur iOS/Android, le navigateur peut décharger la page quand l'utilisateur
+// bascule vers une autre application. Tout l'état Vue est perdu. On le sauvegarde
+// dans sessionStorage (effacé à la fermeture de l'onglet) pour restaurer
+// exactement la bonne étape au retour.
+
+const SESSION_KEY = 'cofrap-register-draft'
+
+watch([step, username, passwordText, passwordQr, totpQr, totpInstance], () => {
+  if (step.value === 4) {
+    // Inscription terminée — on purge le brouillon
+    sessionStorage.removeItem(SESSION_KEY)
+    return
+  }
+  sessionStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify({
+      step: step.value,
+      username: username.value,
+      passwordText: passwordText.value,
+      passwordQr: passwordQr.value,
+      totpQr: totpQr.value,
+      otpauthUri: totpInstance.value?.toString() ?? '',
+    }),
+  )
+})
+
+onMounted(() => {
+  const saved = sessionStorage.getItem(SESSION_KEY)
+  if (!saved) return
+  try {
+    const data = JSON.parse(saved) as {
+      step?: number
+      username?: string
+      passwordText?: string
+      passwordQr?: string
+      totpQr?: string
+      otpauthUri?: string
+    }
+    if (!data.step || data.step < 2) return
+    username.value = data.username ?? ''
+    passwordText.value = data.passwordText ?? ''
+    passwordQr.value = data.passwordQr ?? ''
+    totpQr.value = data.totpQr ?? ''
+    if (data.otpauthUri) {
+      totpInstance.value = OTPAuth.URI.parse(data.otpauthUri) as OTPAuth.TOTP
+    }
+    step.value = data.step
+  } catch {
+    sessionStorage.removeItem(SESSION_KEY)
+  }
+})
 
 const stepContent = computed(() => {
   if (step.value === 1)
@@ -283,7 +413,7 @@ const submitUsername = async () => {
     const dataUrl = `data:image/png;base64,${res.qrcode_png_base64}`
     passwordQr.value = dataUrl
     // Priorité : champs possibles du backend → décodage du QR en fallback.
-    const raw = res as Record<string, unknown>
+    const raw = res as unknown as Record<string, unknown>
     passwordText.value =
       (raw.password as string | undefined) ??
       (raw.generated_password as string | undefined) ??
@@ -324,6 +454,11 @@ const activateAccount = () => {
     totpError.value = t.register.totpError
     loading.value = false
     return
+  }
+
+  // Persist l'URI TOTP pour que le bouton "Ouvrir l'app" soit disponible au login.
+  if (totpUri.value) {
+    localStorage.setItem(`cofrap-totp-${username.value.trim()}`, totpUri.value)
   }
 
   step.value = 4

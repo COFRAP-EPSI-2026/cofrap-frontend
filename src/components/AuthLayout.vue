@@ -1,9 +1,5 @@
 <template>
   <main class="auth-page">
-    <a href="#main-content" class="skip-link">{{ t.skipLink }}</a>
-
-    <AppHeader />
-
     <section id="main-content" class="auth-page__content">
       <article :class="['auth-layout', { 'auth-layout--spacious': spacious }]">
         <p v-if="badge" class="auth-layout__badge">
@@ -32,10 +28,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import AppHeader from '@/components/AppHeader.vue'
-import { useLang } from '@/composables/useLang'
-
-const { t } = useLang()
 
 defineProps<{
   badge?: string

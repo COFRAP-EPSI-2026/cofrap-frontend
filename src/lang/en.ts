@@ -58,14 +58,22 @@ export const en = {
       'Access your business applications. Generated password and two-factor authentication required for all new connections.',
     loginButton: 'Sign in',
     registerButton: 'Create an account',
-    footerVersion: 'v2.4 · Serverless PoC',
+    footerVersion: '· Serverless PoC',
     footerHelp: 'Need help?',
   },
 
   login: {
     badge: 'Sign in',
-    title: 'Sign in',
-    description: 'Authenticate with your username, your generated password and your 2FA code.',
+    // Step 1 — credentials
+    step1Title: 'Sign in',
+    step1Description: 'Enter your username and generated password to continue.',
+    nextButton: 'Continue',
+    // Step 2 — TOTP code
+    step2Title: 'Two-factor authentication',
+    step2Description: 'Enter the 6-digit code displayed by your TOTP app.',
+    backToCredentials: 'Edit my credentials',
+    openInAppButton: 'Open my TOTP app',
+    // Success screen
     successTitle: 'Login successful',
     successDescription: 'You are connected to your COFRAP Cloud space.',
     usernameLabel: 'Username',
@@ -124,6 +132,11 @@ export const en = {
     passwordUnavailable: 'Scan the QR code to retrieve your password.',
     copyButton: 'Copy',
     copiedButton: 'Copied!',
+    copySecretButton: 'Copy key',
+    openInAppButton: 'Open in my TOTP app',
+    showSecretLabel: 'Manual entry (no camera)',
+    totpSecretHint: 'Enter this key in Google Authenticator, Authy, etc.',
+    recopyPasswordButton: 'Re-copy password',
     apiError: 'Error communicating with the server. Please try again.',
   },
 
@@ -160,5 +173,10 @@ export const en = {
     passwordUnavailable: 'Scan the QR code to retrieve your password.',
     copyButton: 'Copy',
     copiedButton: 'Copied!',
+    copySecretButton: 'Copy key',
+    openInAppButton: 'Open in my TOTP app',
+    showSecretLabel: 'Manual entry (no camera)',
+    totpSecretHint: 'Enter this key in Google Authenticator, Authy, etc.',
+    recopyPasswordButton: 'Re-copy password',
   },
 }

@@ -17,6 +17,8 @@ name: Release Please
 on:
   push:
     branches: [main]
+  merge_group:
+    branches: [main]
 
 permissions:
   contents: write
@@ -79,7 +81,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          provenance: true
-          sbom: true
+          # provenance: false → pas d'attestation = pas d'entrée "unknown/unknown" sur GHCR
+          provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max

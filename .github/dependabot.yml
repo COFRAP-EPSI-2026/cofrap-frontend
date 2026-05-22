@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Maintain dependencies for npm/Yarn
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain dependencies for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain dependencies for Helm
+  - package-ecosystem: "helm"
+    directory: "/deploy/helm/cofrap-frontend"
+    schedule:
+      interval: "weekly"

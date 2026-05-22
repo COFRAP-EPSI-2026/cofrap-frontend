@@ -105,19 +105,17 @@ docker run --rm -p 8080:8080 cofrap-frontend:dev
 
 → Détails image + déploiement : [`deployment.md`](deployment.md).
 
-## Intégration continue
+## Intégration continue et pré-releases
 
-Chaque push et chaque PR sur `main` déclenche `.github/workflows/ci.yml` —
-job `verify` puis job `docker` :
+Trois workflows GitHub Actions, faciles à suivre :
 
-1. `yarn install --frozen-lockfile`
-2. `yarn lint` — analyse ESLint
-3. `yarn format:check` — vérifie le formatage Prettier
-4. `yarn type-check` — `vue-tsc`
-5. `yarn build-only` — build de production (artefact `dist/` publié)
-6. build de l'image Docker (sans push)
+| Workflow | Déclencheur | Rôle |
+|----------|-------------|------|
+| `ci.yml` | PR vers `dev` ou `main` | **Validation** : `lint` → `format:check` → `type-check` → `build` → build image (sans push) |
+| `pre-release.yml` | push sur `dev` | Rejoue `ci.yml` ; si vert, **publie l'image `:dev`** (+ `:dev-<sha>`) sur GHCR |
+| `release-please.yml` | push sur `main` | **Release stable** (voir ci-dessous) |
 
-Reproduire la CI en local : `yarn lint && yarn format:check && yarn type-check && yarn build`.
+Reproduire la validation en local : `yarn lint && yarn format:check && yarn type-check && yarn build`.
 
 ## Releases (Release Please)
 

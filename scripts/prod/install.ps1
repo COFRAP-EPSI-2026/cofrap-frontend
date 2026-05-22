@@ -1,9 +1,9 @@
 # Deploie le frontend COFRAP (chart cofrap-frontend) sur un cluster Kubernetes.
 #
 # Usage :
-#   ./scripts/install.ps1
-#   ./scripts/install.ps1 -IngressHost cofrap.mondomaine.fr
-#   ./scripts/install.ps1 -Namespace cofrap -ImageTag 2026.1.0
+#   ./scripts/prod/install.ps1
+#   ./scripts/prod/install.ps1 -IngressHost cofrap.mondomaine.fr
+#   ./scripts/prod/install.ps1 -Namespace cofrap -ImageTag 2026.1.0
 #
 # Pre-requis : kubectl + helm configures sur le cluster cible.
 # Le backend (OpenFaaS + chart cofrap) doit etre deploye AVANT.
@@ -23,7 +23,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ChartPath = Join-Path $ScriptDir '..\deploy\helm\cofrap-frontend'
+$ChartPath = Join-Path $ScriptDir '..' '..' 'deploy' 'helm' 'cofrap-frontend'
 
 function Blue($m)  { Write-Host "> $m" -ForegroundColor Blue }
 function Green($m) { Write-Host $m -ForegroundColor Green }
