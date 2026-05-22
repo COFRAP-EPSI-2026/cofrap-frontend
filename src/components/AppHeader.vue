@@ -1,13 +1,7 @@
 <template>
   <header class="app-header">
     <div class="app-header__brand">
-      <img
-        src="/logo-cofrap.svg"
-        alt=""
-        class="app-header__logo-img"
-        width="147"
-        height="40"
-      />
+      <img src="/logo-cofrap.svg" alt="" class="app-header__logo-img" width="147" height="40" />
       <div class="app-header__brand-text">
         <span class="app-header__title">COFRAP</span>
         <span class="app-header__subtitle" v-html="t.header.subtitle"></span>
@@ -40,7 +34,6 @@
         <Accessibility :size="18" aria-hidden="true" />
         <span>{{ t.a11y.buttonLabel }}</span>
       </button>
-
     </div>
 
     <A11yPanel :open="a11yOpen" @close="a11yOpen = false" />

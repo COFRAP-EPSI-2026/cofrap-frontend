@@ -84,12 +84,7 @@
         {{ t.login.submitButton }}
       </button>
 
-      <button
-        v-if="!isLocked"
-        type="button"
-        class="back-step-btn"
-        @click="backToCredentials"
-      >
+      <button v-if="!isLocked" type="button" class="back-step-btn" @click="backToCredentials">
         ← {{ t.login.backToCredentials }}
       </button>
     </form>
@@ -99,7 +94,8 @@
       <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <p>
-        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong>.
+        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong
+        >.
       </p>
 
       <RouterLink class="auth-button auth-button--primary" to="/">
@@ -162,28 +158,25 @@ const stepContent = computed(() => {
 
 const LOGIN_SESSION_KEY = 'cofrap-login-draft'
 
-watch(
-  [loginStep, () => form.username, () => form.password],
-  () => {
-    if (loginSuccess.value) {
-      sessionStorage.removeItem(LOGIN_SESSION_KEY)
-      return
-    }
-    // On ne sauvegarde qu'à partir de l'étape 2 (identifiants saisis)
-    if (loginStep.value < 2) {
-      sessionStorage.removeItem(LOGIN_SESSION_KEY)
-      return
-    }
-    sessionStorage.setItem(
-      LOGIN_SESSION_KEY,
-      JSON.stringify({
-        loginStep: loginStep.value,
-        username: form.username,
-        password: form.password,
-      }),
-    )
-  },
-)
+watch([loginStep, () => form.username, () => form.password], () => {
+  if (loginSuccess.value) {
+    sessionStorage.removeItem(LOGIN_SESSION_KEY)
+    return
+  }
+  // On ne sauvegarde qu'à partir de l'étape 2 (identifiants saisis)
+  if (loginStep.value < 2) {
+    sessionStorage.removeItem(LOGIN_SESSION_KEY)
+    return
+  }
+  sessionStorage.setItem(
+    LOGIN_SESSION_KEY,
+    JSON.stringify({
+      loginStep: loginStep.value,
+      username: form.username,
+      password: form.password,
+    }),
+  )
+})
 
 onMounted(() => {
   const saved = sessionStorage.getItem(LOGIN_SESSION_KEY)

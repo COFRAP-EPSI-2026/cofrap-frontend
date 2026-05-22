@@ -66,13 +66,11 @@ export const en = {
     badge: 'Sign in',
     // Step 1 — credentials
     step1Title: 'Sign in',
-    step1Description:
-      'Enter your username and generated password to continue.',
+    step1Description: 'Enter your username and generated password to continue.',
     nextButton: 'Continue',
     // Step 2 — TOTP code
     step2Title: 'Two-factor authentication',
-    step2Description:
-      'Enter the 6-digit code displayed by your TOTP app.',
+    step2Description: 'Enter the 6-digit code displayed by your TOTP app.',
     backToCredentials: 'Edit my credentials',
     openInAppButton: 'Open my TOTP app',
     // Success screen

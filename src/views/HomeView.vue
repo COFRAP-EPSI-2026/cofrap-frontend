@@ -1,5 +1,10 @@
 <template>
-  <AuthLayout :badge="t.home.badge" :title="t.home.title" :description="t.home.description" spacious>
+  <AuthLayout
+    :badge="t.home.badge"
+    :title="t.home.title"
+    :description="t.home.description"
+    spacious
+  >
     <div class="auth-actions">
       <RouterLink class="auth-button auth-button--primary" to="/login">
         {{ t.home.loginButton }}
