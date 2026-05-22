@@ -21,10 +21,15 @@ concurrency:
   group: pre-release-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GHCR_PAT_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 jobs:
   validate:
     name: Validation (CI)
     uses: ./.github/workflows/ci.yml
+    secrets: inherit
 
   publish:
     name: Build & push dev image
