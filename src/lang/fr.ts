@@ -64,9 +64,18 @@ export const fr = {
 
   login: {
     badge: 'Connexion',
-    title: 'Se connecter',
-    description:
-      'Authentifiez-vous avec votre identifiant, votre mot de passe généré et votre code 2FA.',
+    // Étape 1 — identifiants
+    step1Title: 'Se connecter',
+    step1Description:
+      'Saisissez votre identifiant et votre mot de passe généré pour continuer.',
+    nextButton: 'Continuer',
+    // Étape 2 — code TOTP
+    step2Title: 'Double authentification',
+    step2Description:
+      'Entrez le code à 6 chiffres affiché par votre application TOTP.',
+    backToCredentials: 'Modifier mes identifiants',
+    openInAppButton: 'Ouvrir mon app TOTP',
+    // Écran de succès
     successTitle: 'Connexion réussie',
     successDescription: 'Vous êtes connecté à votre espace COFRAP Cloud.',
     usernameLabel: 'Identifiant',
@@ -128,6 +137,11 @@ export const fr = {
     passwordUnavailable: 'Scannez le QR code pour récupérer votre mot de passe.',
     copyButton: 'Copier',
     copiedButton: 'Copié !',
+    copySecretButton: 'Copier la clé',
+    openInAppButton: 'Ouvrir dans mon app TOTP',
+    showSecretLabel: 'Saisie manuelle (sans caméra)',
+    totpSecretHint: 'Entrez cette clé dans Google Authenticator, Authy, etc.',
+    recopyPasswordButton: 'Recopier le mot de passe',
     apiError: 'Erreur lors de la communication avec le serveur. Réessayez.',
   },
 
@@ -166,5 +180,10 @@ export const fr = {
     passwordUnavailable: 'Scannez le QR code pour récupérer votre mot de passe.',
     copyButton: 'Copier',
     copiedButton: 'Copié !',
+    copySecretButton: 'Copier la clé',
+    openInAppButton: 'Ouvrir dans mon app TOTP',
+    showSecretLabel: 'Saisie manuelle (sans caméra)',
+    totpSecretHint: 'Entrez cette clé dans Google Authenticator, Authy, etc.',
+    recopyPasswordButton: 'Recopier le mot de passe',
   },
 }
