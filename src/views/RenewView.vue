@@ -87,6 +87,32 @@
     <form v-if="step === 3" class="register-panel register-panel--spacious" @submit.prevent="activateRenewal">
       <img :src="totpQr" :alt="t.renew.totpQrAlt" class="qr-image" />
 
+      <!-- Aide mobile : impossible de scanner son propre écran -->
+      <div class="totp-mobile-help">
+        <a
+          :href="totpUri"
+          class="totp-open-btn"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Smartphone :size="15" aria-hidden="true" />
+          {{ t.renew.openInAppButton }}
+        </a>
+        <details class="totp-secret-details">
+          <summary>{{ t.renew.showSecretLabel }}</summary>
+          <div class="totp-secret-box">
+            <p class="totp-secret-hint">{{ t.renew.totpSecretHint }}</p>
+            <div class="totp-secret-row">
+              <code class="totp-secret-value">{{ totpSecret }}</code>
+              <button type="button" class="totp-secret-copy" @click.stop="copySecret">
+                <Check v-if="secretCopied" :size="13" aria-hidden="true" />
+                {{ secretCopied ? t.renew.copiedButton : t.renew.copySecretButton }}
+              </button>
+            </div>
+          </div>
+        </details>
+      </div>
+
       <div class="auth-form__group">
         <label for="totp">{{ t.renew.totpLabel }}</label>
         <input
@@ -114,6 +140,15 @@
       >
         {{ t.renew.activateButton }}
       </button>
+
+      <button
+        v-if="passwordText"
+        type="button"
+        class="recopier-mdp-btn"
+        @click="recopyPassword"
+      >
+        {{ passwordCopied ? t.renew.copiedButton : t.renew.recopyPasswordButton }}
+      </button>
     </form>
 
     <div v-if="step === 4" class="success-panel">
@@ -138,9 +173,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
-import { Check, Copy, Eye, EyeOff } from 'lucide-vue-next'
+import { Check, Copy, Eye, EyeOff, Smartphone } from 'lucide-vue-next'
 import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -177,8 +212,78 @@ const copied = ref(false)
 // vérifier côté client que l'utilisateur a bien scanné le nouveau QR.
 const totpInstance = ref<OTPAuth.TOTP | null>(null)
 
+// Aide mobile : lien otpauth:// + clé base32 pour saisie manuelle.
+const totpUri = computed(() => totpInstance.value?.toString() ?? '')
+const totpSecret = computed(() => totpInstance.value?.secret.base32 ?? '')
+
+const secretCopied = ref(false)
+const passwordCopied = ref(false)
+
+const copySecret = async () => {
+  if (!totpSecret.value) return
+  await navigator.clipboard.writeText(totpSecret.value)
+  secretCopied.value = true
+}
+
+const recopyPassword = async () => {
+  if (!passwordText.value) return
+  await navigator.clipboard.writeText(passwordText.value)
+  passwordCopied.value = true
+}
+
 const apiError = ref('')
 const totpError = ref('')
+
+// ── Persistance mobile — survie aux aller-retours vers l'app TOTP ─────────────
+
+const SESSION_KEY = 'cofrap-renew-draft'
+
+watch(
+  [step, username, passwordText, passwordQr, totpQr, totpInstance],
+  () => {
+    if (step.value === 4) {
+      sessionStorage.removeItem(SESSION_KEY)
+      return
+    }
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        step: step.value,
+        username: username.value,
+        passwordText: passwordText.value,
+        passwordQr: passwordQr.value,
+        totpQr: totpQr.value,
+        otpauthUri: totpInstance.value?.toString() ?? '',
+      }),
+    )
+  },
+)
+
+onMounted(() => {
+  const saved = sessionStorage.getItem(SESSION_KEY)
+  if (!saved) return
+  try {
+    const data = JSON.parse(saved) as {
+      step?: number
+      username?: string
+      passwordText?: string
+      passwordQr?: string
+      totpQr?: string
+      otpauthUri?: string
+    }
+    if (!data.step || data.step < 2) return
+    username.value = data.username ?? ''
+    passwordText.value = data.passwordText ?? ''
+    passwordQr.value = data.passwordQr ?? ''
+    totpQr.value = data.totpQr ?? ''
+    if (data.otpauthUri) {
+      totpInstance.value = OTPAuth.URI.parse(data.otpauthUri) as OTPAuth.TOTP
+    }
+    step.value = data.step
+  } catch {
+    sessionStorage.removeItem(SESSION_KEY)
+  }
+})
 
 const stepContent = computed(() => {
   if (step.value === 1) return { title: t.renew.step1Title, description: t.renew.step1Description }
@@ -271,6 +376,11 @@ const activateRenewal = () => {
     totpError.value = t.renew.totpError
     loading.value = false
     return
+  }
+
+  // Met à jour l'URI TOTP pour que le bouton "Ouvrir l'app" reste valide au login.
+  if (totpUri.value) {
+    localStorage.setItem(`cofrap-totp-${username.value.trim()}`, totpUri.value)
   }
 
   step.value = 4

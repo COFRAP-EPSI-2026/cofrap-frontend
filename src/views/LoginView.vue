@@ -1,10 +1,12 @@
 <template>
   <AuthLayout
     :badge="t.login.badge"
-    :title="loginSuccess ? t.login.successTitle : t.login.title"
-    :description="loginSuccess ? t.login.successDescription : t.login.description"
+    :title="loginSuccess ? t.login.successTitle : stepContent.title"
+    :description="loginSuccess ? t.login.successDescription : stepContent.description"
+    :spacious="loginStep === 2 || loginSuccess"
   >
-    <form v-if="!loginSuccess" class="auth-form" @submit.prevent="handleLogin">
+    <!-- ── Étape 1 : identifiant + mot de passe ─────────────────────────────── -->
+    <form v-if="!loginSuccess && loginStep === 1" class="auth-form" @submit.prevent="goToTotpStep">
       <div class="auth-form__group">
         <label for="username">{{ t.login.usernameLabel }}</label>
         <input
@@ -24,6 +26,31 @@
           :placeholder="t.login.passwordPlaceholder"
           autocomplete="current-password"
         />
+      </div>
+
+      <button class="auth-button auth-button--primary" type="submit">
+        {{ t.login.nextButton }}
+      </button>
+    </form>
+
+    <!-- ── Étape 2 : code TOTP ──────────────────────────────────────────────── -->
+    <form v-if="!loginSuccess && loginStep === 2" class="auth-form" @submit.prevent="handleLogin">
+      <!-- Bouton accès direct app TOTP — uniquement si l'URI a été sauvegardée
+           lors de l'inscription/renouvellement, et uniquement sur mobile (CSS). -->
+      <a
+        v-if="savedTotpUri"
+        :href="savedTotpUri"
+        class="totp-open-btn"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Smartphone :size="15" aria-hidden="true" />
+        {{ t.login.openInAppButton }}
+      </a>
+
+      <div class="login-identity-recap">
+        <span class="login-identity-recap__label">{{ t.login.usernameLabel }}</span>
+        <strong class="login-identity-recap__value">{{ form.username }}</strong>
       </div>
 
       <div class="auth-form__group">
@@ -56,14 +83,23 @@
       >
         {{ t.login.submitButton }}
       </button>
+
+      <button
+        v-if="!isLocked"
+        type="button"
+        class="back-step-btn"
+        @click="backToCredentials"
+      >
+        ← {{ t.login.backToCredentials }}
+      </button>
     </form>
 
-    <div v-else class="success-panel">
+    <!-- ── Succès ────────────────────────────────────────────────────────────── -->
+    <div v-if="loginSuccess" class="success-panel">
       <div class="success-panel__icon" aria-hidden="true">✓</div>
 
       <p>
-        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong
-        >.
+        {{ t.login.welcomePrefix }} <strong>{{ form.username }}</strong>.
       </p>
 
       <RouterLink class="auth-button auth-button--primary" to="/">
@@ -81,9 +117,10 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { AxiosError } from 'axios'
+import { Smartphone } from 'lucide-vue-next'
 
 import AuthLayout from '@/components/AuthLayout.vue'
 import PasswordInput from '@/components/PasswordInput.vue'
@@ -96,6 +133,14 @@ const { t } = useLang()
 const MAX_ATTEMPTS = 3
 const LOCK_DURATION_MS = 5 * 60 * 1000
 
+const loginStep = ref<1 | 2>(1)
+
+// URI TOTP sauvegardée lors de l'inscription/renouvellement — permet d'ouvrir
+// directement l'app d'authentification depuis l'étape 2 de connexion.
+const savedTotpUri = computed(
+  () => localStorage.getItem(`cofrap-totp-${form.username.trim()}`) ?? '',
+)
+
 const form = reactive({
   username: '',
   password: '',
@@ -107,27 +152,79 @@ const errorMessage = ref('')
 const isLocked = ref(false)
 const loginSuccess = ref(false)
 
-const focusTitle = async () => {
-  await nextTick()
-  document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
-}
+const stepContent = computed(() => {
+  if (loginStep.value === 1)
+    return { title: t.login.step1Title, description: t.login.step1Description }
+  return { title: t.login.step2Title, description: t.login.step2Description }
+})
 
-watch(loginSuccess, (val) => {
-  if (val) focusTitle()
+// ── Persistance mobile — survie aux aller-retours vers l'app TOTP ─────────────
+
+const LOGIN_SESSION_KEY = 'cofrap-login-draft'
+
+watch(
+  [loginStep, () => form.username, () => form.password],
+  () => {
+    if (loginSuccess.value) {
+      sessionStorage.removeItem(LOGIN_SESSION_KEY)
+      return
+    }
+    // On ne sauvegarde qu'à partir de l'étape 2 (identifiants saisis)
+    if (loginStep.value < 2) {
+      sessionStorage.removeItem(LOGIN_SESSION_KEY)
+      return
+    }
+    sessionStorage.setItem(
+      LOGIN_SESSION_KEY,
+      JSON.stringify({
+        loginStep: loginStep.value,
+        username: form.username,
+        password: form.password,
+      }),
+    )
+  },
+)
+
+onMounted(() => {
+  const saved = sessionStorage.getItem(LOGIN_SESSION_KEY)
+  if (!saved) return
+  try {
+    const data = JSON.parse(saved) as {
+      loginStep?: number
+      username?: string
+      password?: string
+    }
+    if (data.loginStep !== 2) return
+    form.username = data.username ?? ''
+    form.password = data.password ?? ''
+    loginStep.value = 2
+  } catch {
+    sessionStorage.removeItem(LOGIN_SESSION_KEY)
+  }
+})
+
+// Gestion du focus lors des transitions d'étapes
+watch(loginStep, async (newStep) => {
+  await nextTick()
+  if (newStep === 2) {
+    document.getElementById('totp')?.focus()
+  } else {
+    document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+  }
+})
+
+watch(loginSuccess, async (val) => {
+  if (val) {
+    await nextTick()
+    document.querySelector<HTMLElement>('.auth-layout__title')?.focus()
+  }
 })
 
 // --- Verrouillage anti-bruteforce (côté client) ------------------------------
-// Le backend `authenticate-user` valide réellement les identifiants ; ce
-// compteur local fige juste l'UI après 3 échecs consécutifs pour décourager
-// les tentatives répétées depuis ce navigateur.
 
 const getLoginSecurity = (): { attempts: number; lockedUntil: number | null } => {
   const storedSecurity = localStorage.getItem('cofrap-login-security')
-
-  if (!storedSecurity) {
-    return { attempts: 0, lockedUntil: null }
-  }
-
+  if (!storedSecurity) return { attempts: 0, lockedUntil: null }
   return JSON.parse(storedSecurity)
 }
 
@@ -142,19 +239,40 @@ const resetLoginSecurity = () => {
 const registerFailedAttempt = () => {
   const security = getLoginSecurity()
   const attempts = security.attempts + 1
-
   if (attempts >= MAX_ATTEMPTS) {
     saveLoginSecurity(attempts, Date.now() + LOCK_DURATION_MS)
     errorMessage.value = t.login.errorLocked
     isLocked.value = true
     return
   }
-
   saveLoginSecurity(attempts, null)
   errorMessage.value = t.login.errorAttempts(MAX_ATTEMPTS - attempts)
 }
 
-/** Authentifie via le backend (identifiant + mot de passe + code TOTP). */
+/** Étape 1 → 2 : valide que les champs identifiant et mot de passe sont remplis. */
+const goToTotpStep = () => {
+  if (!form.username.trim() || !form.password) return
+
+  // Vérifier si le compte est déjà verrouillé avant d'avancer
+  const security = getLoginSecurity()
+  if (security.lockedUntil && Date.now() < security.lockedUntil) {
+    errorMessage.value = t.login.errorLockedCheck
+    isLocked.value = true
+    return
+  }
+
+  loginStep.value = 2
+}
+
+/** Étape 2 → 1 : revenir à la saisie des identifiants. */
+const backToCredentials = () => {
+  loginStep.value = 1
+  errorMessage.value = ''
+  isLocked.value = false
+  form.totp = ''
+}
+
+/** Étape 2 : authentification complète via le backend. */
 const handleLogin = async () => {
   errorMessage.value = ''
   isLocked.value = false
@@ -172,7 +290,6 @@ const handleLogin = async () => {
   try {
     const res = await authenticate(form.username.trim(), form.password, form.totp.trim())
 
-    // Compte expiré (rotation 6 mois) → renouvellement obligatoire.
     if (res.expired) {
       resetLoginSecurity()
       router.push('/renew')
@@ -181,18 +298,16 @@ const handleLogin = async () => {
 
     if (res.authenticated) {
       resetLoginSecurity()
+      sessionStorage.removeItem(LOGIN_SESSION_KEY)
       loginSuccess.value = true
       return
     }
 
-    // Réponse 200 sans `authenticated` ni `expired` : traité comme un échec.
     registerFailedAttempt()
   } catch (error) {
-    // Panne serveur / réseau : on n'incrémente pas le compteur d'échecs.
     if (error instanceof AxiosError && (!error.response || error.response.status >= 500)) {
       errorMessage.value = t.login.errorServer
     } else {
-      // 401 / 404 / 409 / 422 → identifiants refusés.
       registerFailedAttempt()
     }
   } finally {
