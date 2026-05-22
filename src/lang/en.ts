@@ -58,7 +58,7 @@ export const en = {
       'Access your business applications. Generated password and two-factor authentication required for all new connections.',
     loginButton: 'Sign in',
     registerButton: 'Create an account',
-    footerVersion: 'v2.4 · Serverless PoC',
+    footerVersion: '· Serverless PoC',
     footerHelp: 'Need help?',
   },
 

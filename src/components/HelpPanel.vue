@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { Accessibility, Clock, HelpCircle, ShieldAlert, ShieldCheck, X } from 'lucide-vue-next'
+import { Accessibility, Clock, HelpCircle, ShieldAlert, ShieldCheck, X } from '@lucide/vue'
 import { useLang } from '@/composables/useLang'
 
 const props = defineProps<{ open: boolean }>()

@@ -1,8 +1,9 @@
 {
   "name": "cofrap-front",
-  "version": "2026.1.0",
+  "version": "2026.2.1",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
@@ -14,21 +15,17 @@
     "format:check": "prettier --check src/"
   },
   "dependencies": {
-    "@otplib/preset-browser": "^12.0.1",
+    "@lucide/vue": "^1.16.0",
     "axios": "^1.16.0",
     "jsqr": "^1.4.0",
-    "lucide-vue-next": "^1.0.0",
     "otpauth": "^9.5.1",
-    "otplib": "^13.4.0",
     "pinia": "^3.0.4",
-    "qrcode": "^1.5.4",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.12.2",
-    "@types/qrcode": "^1",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.7.0",

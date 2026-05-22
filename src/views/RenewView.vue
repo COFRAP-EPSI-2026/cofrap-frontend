@@ -175,7 +175,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
-import { Check, Copy, Eye, EyeOff, Smartphone } from 'lucide-vue-next'
+import { Check, Copy, Eye, EyeOff, Smartphone } from '@lucide/vue'
 import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -335,7 +335,7 @@ const renewCredentials = async () => {
     const dataUrl = `data:image/png;base64,${res.qrcode_png_base64}`
     passwordQr.value = dataUrl
     // Priorité : champs possibles du backend → décodage du QR en fallback.
-    const raw = res as Record<string, unknown>
+    const raw = res as unknown as Record<string, unknown>
     passwordText.value =
       (raw.password as string | undefined) ??
       (raw.generated_password as string | undefined) ??

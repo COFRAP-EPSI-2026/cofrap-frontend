@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Accessibility, Languages, Moon, Sun } from 'lucide-vue-next'
+import { Accessibility, Languages, Moon, Sun } from '@lucide/vue'
 import { useLang } from '@/composables/useLang'
 import { useTheme } from '@/composables/useTheme'
 import A11yPanel from '@/components/A11yPanel.vue'

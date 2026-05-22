@@ -120,7 +120,7 @@
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { AxiosError } from 'axios'
-import { Smartphone } from 'lucide-vue-next'
+import { Smartphone } from '@lucide/vue'
 
 import AuthLayout from '@/components/AuthLayout.vue'
 import PasswordInput from '@/components/PasswordInput.vue'

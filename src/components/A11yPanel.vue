@@ -208,7 +208,7 @@ import {
   Volume2,
   X,
   Zap,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useLang } from '@/composables/useLang'
 import { useA11y } from '@/composables/useA11y'
 

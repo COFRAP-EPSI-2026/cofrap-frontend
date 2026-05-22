@@ -58,7 +58,7 @@ export const fr = {
       'Accédez à vos applicatifs métier. Mot de passe généré et double authentification obligatoires pour toutes les nouvelles connexions.',
     loginButton: 'Se connecter',
     registerButton: 'Créer un compte',
-    footerVersion: 'v2.4 · PoC serverless',
+    footerVersion: '· PoC serverless',
     footerHelp: "Besoin d'aide ?",
   },
 

@@ -12,7 +12,7 @@
 
     <template #footer>
       <div class="auth-footer">
-        <span>{{ t.home.footerVersion }}</span>
+        <span>v{{ version }} {{ t.home.footerVersion }}</span>
       </div>
     </template>
   </AuthLayout>
@@ -23,4 +23,6 @@ import AuthLayout from '@/components/AuthLayout.vue'
 import { useLang } from '@/composables/useLang'
 
 const { t } = useLang()
+
+const version = __APP_VERSION__
 </script>
