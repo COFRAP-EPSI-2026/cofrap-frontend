@@ -175,7 +175,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
-import { Check, Copy, Eye, EyeOff, Smartphone } from '@lucide/vue'
+import { Check, Eye, EyeOff, Smartphone } from '@lucide/vue'
 import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
