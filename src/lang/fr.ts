@@ -58,7 +58,7 @@ export const fr = {
       'Accédez à vos applicatifs métier. Mot de passe généré et double authentification obligatoires pour toutes les nouvelles connexions.',
     loginButton: 'Se connecter',
     registerButton: 'Créer un compte',
-    footerVersion: 'v2.4 · PoC serverless',
+    footerVersion: '· PoC serverless',
     footerHelp: "Besoin d'aide ?",
   },
 
@@ -66,13 +66,11 @@ export const fr = {
     badge: 'Connexion',
     // Étape 1 — identifiants
     step1Title: 'Se connecter',
-    step1Description:
-      'Saisissez votre identifiant et votre mot de passe généré pour continuer.',
+    step1Description: 'Saisissez votre identifiant et votre mot de passe généré pour continuer.',
     nextButton: 'Continuer',
     // Étape 2 — code TOTP
     step2Title: 'Double authentification',
-    step2Description:
-      'Entrez le code à 6 chiffres affiché par votre application TOTP.',
+    step2Description: 'Entrez le code à 6 chiffres affiché par votre application TOTP.',
     backToCredentials: 'Modifier mes identifiants',
     openInAppButton: 'Ouvrir mon app TOTP',
     // Écran de succès

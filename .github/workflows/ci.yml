@@ -1,12 +1,8 @@
 name: CI
 
-# Pipeline d'intégration continue du frontend (SPA Vue 3 / Vite / TypeScript).
-# Rejoue, sur chaque PR et chaque push sur main, exactement la check-list
-# locale : lint → formatage → types → build → image Docker.
-
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, feature/**, hotfix/**, bugfix/**, release/**]
   workflow_call:
 
 permissions:
@@ -18,36 +14,98 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
+  GITHUB_TOKEN: ${{ secrets.GHCR_PAT_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 jobs:
-  verify:
-    name: Lint, types & build
+  lint:
+    name: Lint & Format (ESLint + Prettier)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
       - name: Lint (ESLint)
         run: yarn lint
-
       - name: Format check (Prettier)
         run: yarn format:check
 
-      - name: Type-check (vue-tsc)
+  type-check:
+    name: Type Check (vue-tsc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - name: Type-check
         run: yarn type-check
 
-      - name: Production build
-        run: yarn build-only
+  security-sast:
+    name: Security Scan (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: TruffleHog OSS (Secrets)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+        continue-on-error: true
 
+  security-sca:
+    name: Dependency Scan (yarn audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Yarn Audit
+        # On utilise continue-on-error pour ne pas bloquer si des vulnérabilités mineures existent
+        run: yarn npm audit || true
+
+  test:
+    name: Tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - name: Run tests
+        # On vérifie si le script test:unit existe avant de le lancer
+        run: |
+          if yarn run -T | grep -q "test:unit"; then
+            yarn test:unit --run --coverage
+          else
+            echo "No unit tests defined yet."
+          fi
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: [lint, type-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - name: Build
+        run: yarn build-only
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -55,22 +113,40 @@ jobs:
           path: dist
           retention-days: 7
 
-  docker:
+  docker-build:
     name: Build image (no push)
     runs-on: ubuntu-latest
-    needs: verify
+    needs: [build, security-sast, security-sca]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build cofrap-frontend image
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: .
+          load: true
           push: false
           tags: cofrap-frontend:ci-${{ github.run_id }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Trivy (Container Scan)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: cofrap-frontend:ci-${{ github.run_id }}
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [lint, type-check, test]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995
+

@@ -23,8 +23,12 @@
     </div>
 
     <footer class="auth-card__footer">
-      <span>v2.4 · PoC serverless</span>
+      <span>v{{ version }} · PoC serverless</span>
       <a href="#">Besoin d'aide ?</a>
     </footer>
   </article>
 </template>
+
+<script setup lang="ts">
+const version = __APP_VERSION__
+</script>

@@ -8,7 +8,14 @@
     <div class="steps" role="list" :aria-label="t.register.stepsAriaLabel">
       <span
         role="listitem"
-        :class="['steps__item', step > 1 ? 'steps__item--done' : step === 1 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 1
+            ? 'steps__item--done'
+            : step === 1
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 1 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -19,7 +26,14 @@
       </span>
       <span
         role="listitem"
-        :class="['steps__item', step > 2 ? 'steps__item--done' : step === 2 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 2
+            ? 'steps__item--done'
+            : step === 2
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 2 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -30,7 +44,14 @@
       </span>
       <span
         role="listitem"
-        :class="['steps__item', step > 3 ? 'steps__item--done' : step === 3 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 3
+            ? 'steps__item--done'
+            : step === 3
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 3 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -41,7 +62,14 @@
       </span>
       <span
         role="listitem"
-        :class="['steps__item', step > 4 ? 'steps__item--done' : step === 4 ? 'steps__item--active' : 'steps__item--pending']"
+        :class="[
+          'steps__item',
+          step > 4
+            ? 'steps__item--done'
+            : step === 4
+              ? 'steps__item--active'
+              : 'steps__item--pending',
+        ]"
         :aria-current="step === 4 ? 'step' : undefined"
       >
         <span class="steps__circle" aria-hidden="true">
@@ -96,11 +124,12 @@
           </button>
         </div>
         <div class="pwd-display__box">
-          <span
-            class="pwd-display__value"
-            :class="{ 'pwd-display__value--hidden': !showPassword }"
-          >
-            {{ showPassword ? (passwordText || t.register.passwordUnavailable) : '●'.repeat(passwordText.length || 16) }}
+          <span class="pwd-display__value" :class="{ 'pwd-display__value--hidden': !showPassword }">
+            {{
+              showPassword
+                ? passwordText || t.register.passwordUnavailable
+                : '●'.repeat(passwordText.length || 16)
+            }}
           </span>
           <button
             type="button"
@@ -129,17 +158,16 @@
       </button>
     </div>
 
-    <form v-if="step === 3" class="register-panel register-panel--spacious" @submit.prevent="activateAccount">
+    <form
+      v-if="step === 3"
+      class="register-panel register-panel--spacious"
+      @submit.prevent="activateAccount"
+    >
       <img :src="totpQr" :alt="t.register.totpQrAlt" class="qr-image" />
 
       <!-- Aide mobile : impossible de scanner son propre écran -->
       <div class="totp-mobile-help">
-        <a
-          :href="totpUri"
-          class="totp-open-btn"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a :href="totpUri" class="totp-open-btn" target="_blank" rel="noopener noreferrer">
           <Smartphone :size="15" aria-hidden="true" />
           {{ t.register.openInAppButton }}
         </a>
@@ -186,12 +214,7 @@
         {{ t.register.activateButton }}
       </button>
 
-      <button
-        v-if="passwordText"
-        type="button"
-        class="recopier-mdp-btn"
-        @click="recopyPassword"
-      >
+      <button v-if="passwordText" type="button" class="recopier-mdp-btn" @click="recopyPassword">
         {{ passwordCopied ? t.register.copiedButton : t.register.recopyPasswordButton }}
       </button>
     </form>
@@ -224,7 +247,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
-import { Check, Copy, Eye, EyeOff, Smartphone } from 'lucide-vue-next'
+import { Check, Eye, EyeOff, Smartphone } from '@lucide/vue'
 import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -292,27 +315,24 @@ const totpError = ref('')
 
 const SESSION_KEY = 'cofrap-register-draft'
 
-watch(
-  [step, username, passwordText, passwordQr, totpQr, totpInstance],
-  () => {
-    if (step.value === 4) {
-      // Inscription terminée — on purge le brouillon
-      sessionStorage.removeItem(SESSION_KEY)
-      return
-    }
-    sessionStorage.setItem(
-      SESSION_KEY,
-      JSON.stringify({
-        step: step.value,
-        username: username.value,
-        passwordText: passwordText.value,
-        passwordQr: passwordQr.value,
-        totpQr: totpQr.value,
-        otpauthUri: totpInstance.value?.toString() ?? '',
-      }),
-    )
-  },
-)
+watch([step, username, passwordText, passwordQr, totpQr, totpInstance], () => {
+  if (step.value === 4) {
+    // Inscription terminée — on purge le brouillon
+    sessionStorage.removeItem(SESSION_KEY)
+    return
+  }
+  sessionStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify({
+      step: step.value,
+      username: username.value,
+      passwordText: passwordText.value,
+      passwordQr: passwordQr.value,
+      totpQr: totpQr.value,
+      otpauthUri: totpInstance.value?.toString() ?? '',
+    }),
+  )
+})
 
 onMounted(() => {
   const saved = sessionStorage.getItem(SESSION_KEY)
@@ -393,7 +413,7 @@ const submitUsername = async () => {
     const dataUrl = `data:image/png;base64,${res.qrcode_png_base64}`
     passwordQr.value = dataUrl
     // Priorité : champs possibles du backend → décodage du QR en fallback.
-    const raw = res as Record<string, unknown>
+    const raw = res as unknown as Record<string, unknown>
     passwordText.value =
       (raw.password as string | undefined) ??
       (raw.generated_password as string | undefined) ??

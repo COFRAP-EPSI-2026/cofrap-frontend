@@ -51,11 +51,12 @@
           </button>
         </div>
         <div class="pwd-display__box">
-          <span
-            class="pwd-display__value"
-            :class="{ 'pwd-display__value--hidden': !showPassword }"
-          >
-            {{ showPassword ? (passwordText || t.renew.passwordUnavailable) : '●'.repeat(passwordText.length || 16) }}
+          <span class="pwd-display__value" :class="{ 'pwd-display__value--hidden': !showPassword }">
+            {{
+              showPassword
+                ? passwordText || t.renew.passwordUnavailable
+                : '●'.repeat(passwordText.length || 16)
+            }}
           </span>
           <button
             type="button"
@@ -84,17 +85,16 @@
       </button>
     </div>
 
-    <form v-if="step === 3" class="register-panel register-panel--spacious" @submit.prevent="activateRenewal">
+    <form
+      v-if="step === 3"
+      class="register-panel register-panel--spacious"
+      @submit.prevent="activateRenewal"
+    >
       <img :src="totpQr" :alt="t.renew.totpQrAlt" class="qr-image" />
 
       <!-- Aide mobile : impossible de scanner son propre écran -->
       <div class="totp-mobile-help">
-        <a
-          :href="totpUri"
-          class="totp-open-btn"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a :href="totpUri" class="totp-open-btn" target="_blank" rel="noopener noreferrer">
           <Smartphone :size="15" aria-hidden="true" />
           {{ t.renew.openInAppButton }}
         </a>
@@ -141,12 +141,7 @@
         {{ t.renew.activateButton }}
       </button>
 
-      <button
-        v-if="passwordText"
-        type="button"
-        class="recopier-mdp-btn"
-        @click="recopyPassword"
-      >
+      <button v-if="passwordText" type="button" class="recopier-mdp-btn" @click="recopyPassword">
         {{ passwordCopied ? t.renew.copiedButton : t.renew.recopyPasswordButton }}
       </button>
     </form>
@@ -175,7 +170,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
-import { Check, Copy, Eye, EyeOff, Smartphone } from 'lucide-vue-next'
+import { Check, Eye, EyeOff, Smartphone } from '@lucide/vue'
 import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
@@ -238,26 +233,23 @@ const totpError = ref('')
 
 const SESSION_KEY = 'cofrap-renew-draft'
 
-watch(
-  [step, username, passwordText, passwordQr, totpQr, totpInstance],
-  () => {
-    if (step.value === 4) {
-      sessionStorage.removeItem(SESSION_KEY)
-      return
-    }
-    sessionStorage.setItem(
-      SESSION_KEY,
-      JSON.stringify({
-        step: step.value,
-        username: username.value,
-        passwordText: passwordText.value,
-        passwordQr: passwordQr.value,
-        totpQr: totpQr.value,
-        otpauthUri: totpInstance.value?.toString() ?? '',
-      }),
-    )
-  },
-)
+watch([step, username, passwordText, passwordQr, totpQr, totpInstance], () => {
+  if (step.value === 4) {
+    sessionStorage.removeItem(SESSION_KEY)
+    return
+  }
+  sessionStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify({
+      step: step.value,
+      username: username.value,
+      passwordText: passwordText.value,
+      passwordQr: passwordQr.value,
+      totpQr: totpQr.value,
+      otpauthUri: totpInstance.value?.toString() ?? '',
+    }),
+  )
+})
 
 onMounted(() => {
   const saved = sessionStorage.getItem(SESSION_KEY)
@@ -335,7 +327,7 @@ const renewCredentials = async () => {
     const dataUrl = `data:image/png;base64,${res.qrcode_png_base64}`
     passwordQr.value = dataUrl
     // Priorité : champs possibles du backend → décodage du QR en fallback.
-    const raw = res as Record<string, unknown>
+    const raw = res as unknown as Record<string, unknown>
     passwordText.value =
       (raw.password as string | undefined) ??
       (raw.generated_password as string | undefined) ??
