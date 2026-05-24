@@ -13,7 +13,7 @@ COPY . .
 RUN yarn build
 
 # --- Stage 2 : service du statique par nginx (non-root) ---
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 
 LABEL org.opencontainers.image.source="https://github.com/COFRAP-EPSI-2026/cofrap-frontend" \
       org.opencontainers.image.licenses="MIT" \
