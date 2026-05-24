@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026.3.0](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/compare/v2026.2.0...v2026.3.0) (2026-05-22)
+
+
+### Features
+
+* ajouter un groupe de fusion pour la branche dev dans le workflow de pré-release ([fb4f3f1](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/commit/fb4f3f1cb9b5ceba59221935ac03d0973cc94764))
+* restructure CI workflows and scripts for improved deployment process ([1656c02](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/commit/1656c02da4a8cae12f3f6fc3044f912a880326e6))
+
 ## [2026.2.0](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/compare/v2026.1.0...v2026.2.0) (2026-05-21)
 
 
