@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Stage 1 : build du bundle Vite ---
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 # Dépendances d'abord (cache Docker tant que package.json/yarn.lock ne changent pas)
