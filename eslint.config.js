@@ -16,5 +16,17 @@ export default defineConfigWithVueTs(
 
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
+
+  // Renforcement TypeScript : interdit `any` explicite (force à typer
+  // correctement, y compris via `unknown` + narrowing si nécessaire).
+  // `vueTsConfigs.recommended` met cette règle en `warn` par défaut — on la
+  // passe en `error` pour bloquer la CI sur les régressions.
+  {
+    name: 'app/strict-typing',
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+
   skipFormatting,
 )

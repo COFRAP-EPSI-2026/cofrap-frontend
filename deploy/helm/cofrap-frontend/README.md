@@ -43,7 +43,7 @@ Voir [`values.yaml`](values.yaml) — commenté. Les plus utiles :
 | Clé                     | Défaut                                       | Description                                          |
 |-------------------------|----------------------------------------------|------------------------------------------------------|
 | `image.repository`      | `ghcr.io/cofrap-epsi-2026/cofrap-frontend`   | Image de la SPA                                      |
-| `image.tag`             | `2026.1.0`                                   | Tag de l'image                                       |
+| `image.tag`             | `vX.Y.Z` (bumpé par Release Please)          | Tag de l'image. Autres tags GHCR : `latest`, `dev`, `dev-<sha>`. |
 | `replicaCount`          | `1`                                          | Nombre de répliques                                  |
 | `ingress.enabled`       | `true`                                       | Créer l'Ingress                                      |
 | `ingress.className`     | `traefik`                                    | IngressClass cible (`""` = classe par défaut)        |

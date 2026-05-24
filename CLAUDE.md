@@ -2,47 +2,162 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Commands
+## Vue d'ensemble
 
-```bash
-yarn dev          # Start Vite dev server
-yarn build        # Type-check + production build (runs in parallel)
-yarn build-only   # Vite build without type-check
-yarn type-check   # Run vue-tsc type validation
-yarn format       # Prettier formatting on src/
-yarn preview      # Preview production build locally
+Frontend Vue 3 du PoC **COFRAP** (MSPR TPRE912). SPA statique buildée par Vite, servie par nginx en prod. Backend serverless OpenFaaS dans un dépôt séparé (`cofrap-backend`), appelé via le préfixe relatif `/api/*` proxifié vers le gateway — **aucun CORS** à gérer côté navigateur.
+
+Le `README.md` (FR) et `README.en.md` (EN) racine sont la porte d'entrée utilisateur. La documentation détaillée est **bilingue** : `docs/fr/` et `docs/en/` (contenu en miroir). Cette page ne répète pas le README — elle pointe vers ce que Claude doit savoir pour bouger vite.
+
+## Stack et architecture
+
+- **Vue 3** (Composition API, `<script setup>`) + **TypeScript 6** strict (`noUncheckedIndexedAccess: true`).
+- **Vite 8** (dev server + build) ; alias `@/` → `src/` configuré dans `vite.config.ts` + `tsconfig.app.json`.
+- **vue-router** 5 (history mode, routes explicites — pas de file-based routing).
+- **Pinia** pour les stores (`src/stores/`).
+- **Axios** pour les appels HTTP — client centralisé `src/components/openfaasApi.ts` (`baseURL: '/api'`, fonctions typées `generatePassword()` / `generate2fa()` / `authenticate()` + helper `apiErrorMessage()`).
+- **SCSS** (BEM, feuille globale unique `src/assets/main.scss`).
+- **otpauth** : lecture/validation TOTP côté client.
+- **jsqr** : décodage des QR PNG renvoyés par `generate-password` pour afficher/copier le mot de passe dans l'UI (Register + Renew, étape « mot de passe »).
+- **lucide-vue-next** : icônes (`Eye`, `EyeOff`, `Copy`, `Check`, etc.).
+- **i18n maison** : `src/lang/fr.ts` / `en.ts` + composable `useLang`. Toutes les chaînes affichées doivent y vivre.
+- **Accessibilité** : `A11yPanel.vue` + composables `useA11y`, `useAudioReading`, `useTheme` ; police **OpenDyslexic**.
+- **nginx-unprivileged** (UID 101, port 8080) en runtime — image multi-stage `node:22-alpine` → `nginxinc/nginx-unprivileged`.
+
+Architecture complète : [`docs/fr/architecture.md`](docs/fr/architecture.md).
+
+## Structure du dépôt (résumé)
+
+```
+src/
+  main.ts                 # bootstrap (Pinia + router)
+  App.vue
+  router/index.ts         # 4 routes : /, /login, /register, /renew
+  views/                  # une vue par route
+  components/
+    AppHeader.vue, AuthLayout.vue, AuthCard.vue,
+    PasswordInput.vue, A11yPanel.vue,
+    openfaasApi.ts        # client axios — single source of API truth
+  composables/            # useA11y, useAudioReading, useLang, useTheme
+  stores/                 # Pinia
+  lang/{fr,en}.ts         # i18n
+  assets/main.scss        # styles globaux (BEM)
+deploy/
+  helm/cofrap-frontend/   # chart Helm (Deployment + Service + Ingress)
+docs/
+  fr/ , en/               # doc bilingue EN MIROIR (architecture, development, deployment, installation, troubleshooting)
+scripts/
+  prod/                   # déploiement cluster (install / uninstall / build-images en .sh + .ps1)
+  dev/                    # dev local (yarn dev wrappers)
+.github/workflows/        # ci.yml + pre-release.yml + release-please.yml
+Dockerfile                # multi-stage node → nginx (non-root)
+default.conf.template     # config nginx (envsubst OPENFAAS_GATEWAY au boot)
+vite.config.ts            # proxy /api → http://127.0.0.1:8080 en dev
 ```
 
-No test or lint scripts are configured.
+## Commandes courantes
 
-## Architecture
+```bash
+yarn install              # dépendances
+yarn dev                  # serveur Vite + HMR → http://localhost:5173
+yarn build                # type-check (vue-tsc) + bundle dist/
+yarn build-only           # build sans type-check
+yarn type-check           # vue-tsc --build
+yarn lint                 # ESLint (.ts + .vue) — yarn lint --fix pour auto-fixer
+yarn format               # Prettier sur src/
+yarn format:check         # Prettier en mode vérification (CI)
+yarn preview              # sert dist/ en local (aussi utilisé par Lighthouse)
+yarn check:i18n           # parité fr.ts ↔ en.ts (échoue si clé manquante d'un côté)
+yarn check:bundle-size    # budget de taille sur dist/ (après yarn build)
+yarn check:all            # enchaîne tous les checks bloquants en un seul coup
+```
 
-**Vue 3 + Vite PoC** for COFRAP Cloud Identity management — a client-side authentication UI with TOTP 2FA and password management flows.
+Reproduire la validation CI en local : **`yarn check:all`** (équivalent compact des jobs bloquants : lint + format:check + type-check + i18n + build + bundle-size).
 
-### Stack
-- Vue 3 with Composition API (`<script setup>`) + TypeScript 6
-- Vue Router 5 (web history, explicit routes — not file-based)
-- SCSS (BEM naming, single global stylesheet at `src/assets/main.scss`)
-- Pinia installed but currently unused
-- Axios installed but currently unused — backend integration via OpenFaaS is pending (`src/components/openfaasApi.ts` is empty)
+### Backend en local (deux options)
 
-### Routes (`src/router/index.ts`)
-| Path | View | Purpose |
-|------|------|---------|
-| `/` | HomeView | Landing |
-| `/login` | LoginView | Login + TOTP verification |
-| `/register` | RegisterView | Multi-step user registration with QR code |
-| `/renew` | RenewView | Credential renewal flow |
+Le proxy Vite de `/api` cible `http://127.0.0.1:8080` (cf. `vite.config.ts`).
 
-### State
-No Pinia stores are implemented. State is managed with:
-- `localStorage` key `cofrap-user` — username, password, TOTP secret, creation date, expiry status
-- `localStorage` key `cofrap-login-security` — login attempt count and lockout timestamp
-- Local Vue reactive refs for UI/form state
+```bash
+# Option A : stack docker-compose du backend (recommandé — pas de cluster requis)
+cd ../cofrap-backend && docker compose up -d --build
 
-### TypeScript
-- Path alias `@/` → `src/` configured in `tsconfig.app.json` and `vite.config.ts`
-- `noUncheckedIndexedAccess: true` — always check array/object accesses for undefined
+# Option B : gateway d'un cluster OpenFaaS
+kubectl -n openfaas port-forward svc/gateway 8080:8080
+```
 
-### Code style
-Prettier config (`.prettierrc.json`): no semicolons, single quotes, 100-char line width.
+## Liaison avec le backend (mécanisme à respecter)
+
+- **Toujours** utiliser `src/components/openfaasApi.ts`. Pas de `fetch()`/`axios` direct dans une vue ; le client expose `generatePassword`, `generate2fa`, `authenticate`, `apiErrorMessage`. Si tu ajoutes un endpoint, étends ce client.
+- URL **relatives** uniquement : `/api/...`. Le préfixe est strippé par nginx (prod) ou par le proxy Vite (dev). Aucune URL absolue d'environnement ne doit fuiter dans le bundle.
+- Pas de CORS à gérer côté frontend — c'est le proxy même-origine qui le résout. Les vues ne doivent pas inventer d'en-têtes CORS.
+- En **production**, l'adresse réelle du gateway est dans `backend.gateway` du chart Helm (injectée comme variable `OPENFAAS_GATEWAY` dans le conteneur, substituée dans `default.conf.template`).
+
+## Conventions critiques pour Claude
+
+- **Documentation bilingue en miroir — RÈGLE PERMANENTE** : `docs/fr/` et `docs/en/` ont une structure identique. **Toute** modification de doc se fait dans les **deux** langues dans le même changement. Idem pour `README.md` (FR) et `README.en.md` (EN). Si tu touches un contenu documentaire et que tu ne mets à jour qu'une langue, le travail est incomplet.
+- **i18n d'abord** : aucune chaîne affichée ne doit être codée en dur dans un composant. Toujours passer par `src/lang/fr.ts` + `src/lang/en.ts` (les deux clés). Sinon : régression silencieuse côté EN.
+- **Accessibilité non négociable** : `useA11y` (préférences), `useTheme` (clair/sombre), OpenDyslexic, `useAudioReading`. Vérifier que les nouveaux composants respectent ces préférences (focus visible, contraste, ARIA labels).
+- **TypeScript strict** : `noUncheckedIndexedAccess` est activé — toute lecture `arr[i]` / `obj[key]` retourne `T | undefined`, à valider. Pas de `as any` pour contourner.
+- **Prettier** : pas de point-virgules, single quotes, largeur 100. Lancer `yarn format` avant chaque commit (ou compter sur la CI `format:check` qui *bloque*).
+- **ESLint** : règles Vue + TypeScript dans `eslint.config.js` (flat config). `@typescript-eslint/no-explicit-any` est en **error** (pas seulement warn) — si tu as besoin de typer du dynamique, utilise `unknown` + narrowing, jamais `any`. Les imports non utilisés sont aussi une erreur.
+- **Pas de fichiers Vue sans `<script setup lang="ts">`** : la base du projet ne supporte que Composition API + TS.
+- **Style** : BEM dans `main.scss` (une seule feuille globale). Pas de `<style scoped>` dispersé sauf cas particulier — la cohérence visuelle passe par cette feuille.
+
+## Vues et flux
+
+| Route        | Vue              | Rôle                                                         |
+|--------------|------------------|--------------------------------------------------------------|
+| `/`          | `HomeView`       | Landing                                                      |
+| `/login`     | `LoginView`      | Auth username + password + TOTP, gère lock-out local         |
+| `/register`  | `RegisterView`   | Multi-étapes : générer mot de passe → afficher (QR + reveal + copy) → activer 2FA → confirmer code TOTP |
+| `/renew`     | `RenewView`      | Même flux que Register mais sur un compte existant `expired` |
+
+L'étape « mot de passe » de Register/Renew utilise `jsqr` pour **décoder le PNG QR** renvoyé par `generate-password` et afficher le mot de passe en clair (toggle Eye/EyeOff, bouton Copy avec confirmation Check). Le scan navigateur évite que le mot de passe passe en clair dans la réponse JSON — la fonction backend ne le retourne que dans le QR.
+
+## État
+
+- **Pinia** pour les stores partagés (`src/stores/`).
+- `localStorage` pour la persistance utile entre sessions : `cofrap-user` (username, état de session côté UI) et `cofrap-login-security` (compteur d'échecs + horodatage de lock-out local). **Ne jamais** y mettre de mot de passe ou de secret TOTP.
+
+## CI/CD
+
+Trois workflows GitHub Actions :
+
+| Workflow                                                     | Déclencheur                  | Rôle                                                                                                |
+|--------------------------------------------------------------|------------------------------|-----------------------------------------------------------------------------------------------------|
+| [`ci.yml`](.github/workflows/ci.yml)                         | PR vers `dev` ou `main`      | **Validation complète** : lint + format:check + type-check + i18n-parity + tests + build + bundle-size + lighthouse + scan image (Trivy) + SAST/SCA + SonarCloud. Réutilisable via `workflow_call`. |
+| [`pre-release.yml`](.github/workflows/pre-release.yml)       | push sur `dev` (+ merge-group)| Rejoue `ci.yml`, puis **publie l'image `:dev`** (+ `:dev-<sha>`) sur GHCR (multi-arch `linux/amd64,linux/arm64`). |
+| [`release-please.yml`](.github/workflows/release-please.yml) | push sur `main`              | **Voie principale de release** : Release PR → merge → tag `vX.Y.Z` + image `2026.X.Y` + `latest`. |
+
+### Jobs bloquants vs informatifs
+
+Jobs **bloquants** (échec = PR rouge) : `lint`, `type-check`, `i18n-parity`, `test`, `build` (inclut `check:bundle-size`), `docker-build`.
+
+Jobs **informatifs** (warn) : `lighthouse` (seuils dans `lighthouserc.json`), `security-sast` (TruffleHog), `security-sca` (yarn audit), `sonarcloud`. Pour durcir Lighthouse, remplacer `"warn"` par `"error"` dans `lighthouserc.json`.
+
+Toutes les publications GHCR utilisent `provenance: false` (évite les entrées d'arch `unknown/unknown`). Le PAT GHCR vit dans le secret `GHCR_PAT_TOKEN` (pas `GITHUB_TOKEN` : préfixe `GITHUB_` interdit en custom secret par GitHub, et le token par défaut est bloqué par certaines policies d'org).
+
+## Versioning
+
+Versioning **calendaire** `YYYY.MINOR.PATCH`. Les releases sont **automatisées par Release Please** — **ne JAMAIS bumper la version à la main**.
+
+Fichiers porteurs de version (annotés `# x-release-please-version` / `<!-- x-release-please-version -->`, bumpés automatiquement) :
+- `package.json` (auto-bump natif Release Please pour `node`)
+- `deploy/helm/cofrap-frontend/Chart.yaml` (×2 : `version` + `appVersion`)
+- `deploy/helm/cofrap-frontend/values.yaml` (`image.tag`)
+- `README.md` + `README.en.md` (ligne « version courante »)
+
+**Si tu ajoutes un nouveau fichier portant la version** : pose l'annotation `# x-release-please-version` (ou `<!-- x-release-please-version -->` en markdown) sur la ligne, et ajoute le chemin dans `extra-files` de `release-please-config.json`.
+
+Prérequis (une seule fois) : `Settings → Actions → General → Workflow permissions` → cocher « Allow GitHub Actions to create and approve pull requests ».
+
+## Quand tu finis quelque chose
+
+1. `yarn lint --fix && yarn format` (sinon la CI `format:check` te bloquera).
+2. `yarn check:all` — enchaîne tous les checks bloquants. Si vert, la CI le sera aussi sur les jobs bloquants.
+3. Toutes les nouvelles chaînes UI doivent vivre dans `src/lang/fr.ts` **et** `src/lang/en.ts` (le job `i18n-parity` te bloquera sinon).
+4. Pas de `any` explicite (ESLint `no-explicit-any: error`) — utiliser `unknown` + narrowing.
+5. Si tu ajoutes une grosse dépendance, vérifier le budget : `yarn build && yarn check:bundle-size`. Ajuster les budgets dans `scripts/check-bundle-size.mjs` si justifié.
+6. Si tu touches un comportement utilisateur, mettre à jour `docs/fr/` **et** `docs/en/` (`development.md`, `architecture.md`, ou `troubleshooting.md` selon le cas) — dans le **même changement**.
+7. **Ne pas bumper la version manuellement** : Release Please s'en charge. Utiliser des commits Conventional (`feat:`, `fix:`, `chore:`, `docs:`).
+8. Pas de README/docs autogénérés sans demande explicite — le PoC veut rester lisible et concis.

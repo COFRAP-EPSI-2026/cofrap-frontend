@@ -14,16 +14,24 @@ Le [`Dockerfile`](../../Dockerfile) est **multi-stage** :
 L'image finale ne contient **pas** Node : juste nginx + les fichiers statiques. Elle tourne **non-root** (UID 101) et écoute sur le port **8080**.
 
 ```bash
-# Build
-docker build -t ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0 .
+# Build mono-arch (test rapide)
+docker build -t ghcr.io/cofrap-epsi-2026/cofrap-frontend:latest .
 
 # Test local
-docker run --rm -p 8080:8080 ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0
+docker run --rm -p 8080:8080 ghcr.io/cofrap-epsi-2026/cofrap-frontend:latest
 # → http://127.0.0.1:8080
 
-# Push (après docker login ghcr.io)
-docker push ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0
+# Build + push multi-arch GHCR (recommandé) — c'est ce que font les scripts prod/
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --provenance=false \
+  --push \
+  -t ghcr.io/cofrap-epsi-2026/cofrap-frontend:latest .
 ```
+
+> `--provenance=false` évite l'apparition d'une entrée d'arch `unknown/unknown` sur GHCR (l'attestation de provenance OCI), qui désoriente certains clients (k3s, registres anciens). Idem côté CI dans `release-please.yml` + `pre-release.yml`.
+
+Plus simple : `./scripts/prod/build-images.sh` (Linux/WSL) ou `./scripts/prod/build-images.ps1` (Windows) — auto-détecte le cluster local (minikube / K3s / K3d / KinD) pour la version sans push, et pousse en multi-arch sur GHCR avec `-Push -Registry ghcr.io/<org>`.
 
 ### Config nginx
 
@@ -47,23 +55,23 @@ Le chart [`deploy/helm/cofrap-frontend`](../../deploy/helm/cofrap-frontend) dép
 ```bash
 helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
   --namespace cofrap --create-namespace \
-  --set image.tag=2026.1.0 \
+  --set image.tag=latest \
   --set ingress.host=cofrap.example.com \
   --set ingress.className=traefik
 ```
 
 ### Valeurs principales
 
-| Clé                   | Défaut                                       | Description                                  |
-|-----------------------|----------------------------------------------|----------------------------------------------|
-| `image.repository`    | `ghcr.io/cofrap-epsi-2026/cofrap-frontend`   | Image de la SPA                              |
-| `image.tag`           | `2026.1.0`                                   | Tag de l'image                               |
-| `replicaCount`        | `1`                                          | Nombre de répliques                          |
-| `ingress.enabled`     | `true`                                       | Créer l'Ingress                              |
-| `ingress.className`   | `traefik`                                    | IngressClass cible (`""` = classe par défaut) |
-| `ingress.host`        | `cofrap.example.com`                         | Nom d'hôte exposé                            |
-| `ingress.tls.enabled` | `false`                                      | Activer TLS                                  |
-| `backend.gateway`     | `gateway.openfaas.svc.cluster.local:8080`    | Gateway OpenFaaS proxifié sous `/api`        |
+| Clé                   | Défaut                                            | Description                                  |
+|-----------------------|---------------------------------------------------|----------------------------------------------|
+| `image.repository`    | `ghcr.io/cofrap-epsi-2026/cofrap-frontend`        | Image de la SPA                              |
+| `image.tag`           | `vX.Y.Z` (bumpé par Release Please)               | Tag de l'image. `latest` ou `dev` aussi disponibles. |
+| `replicaCount`        | `1`                                               | Nombre de répliques                          |
+| `ingress.enabled`     | `true`                                            | Créer l'Ingress                              |
+| `ingress.className`   | `traefik`                                         | IngressClass cible (`""` = classe par défaut) |
+| `ingress.host`        | `cofrap.example.com`                              | Nom d'hôte exposé                            |
+| `ingress.tls.enabled` | `false`                                           | Activer TLS (laisser à `false` derrière un Cloudflare Tunnel — TLS terminé à l'edge) |
+| `backend.gateway`     | `gateway.openfaas.svc.cluster.local:8080`         | Gateway OpenFaaS proxifié sous `/api`        |
 
 Liste complète : [`deploy/helm/cofrap-frontend/values.yaml`](../../deploy/helm/cofrap-frontend/values.yaml).
 

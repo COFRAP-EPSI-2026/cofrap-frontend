@@ -20,18 +20,21 @@ Au runtime, l'application est un ensemble de fichiers statiques (HTML/CSS/JS) se
 
 ## Stack technique
 
-| Choix              | Décision                         | Justification                                                          |
-|--------------------|----------------------------------|------------------------------------------------------------------------|
-| Framework          | **Vue 3** (Composition API)      | Recommandé pour une SPA légère ; courbe d'apprentissage douce          |
-| Build / dev server | **Vite**                         | Démarrage instantané, HMR rapide, build optimisé                       |
-| Langage            | **TypeScript**                   | Typage statique, vérifié par `vue-tsc`                                 |
-| Routing            | **vue-router** (history mode)    | Navigation client entre les 4 vues                                     |
-| État               | **Pinia**                        | Store réactif standard de l'écosystème Vue 3                           |
-| Client HTTP        | **axios**                        | Client `openfaasApi.ts`, appels au backend via `/api`                  |
-| 2FA / QR           | **otplib** / **otpauth** / **qrcode** | Génération/lecture TOTP et QR codes côté client                  |
-| Styles             | **SCSS** (`sass`)                | Feuille `src/assets/main.scss`                                         |
-| Paquets            | **Yarn** classic (lockfile v1)   | `yarn.lock`                                                            |
-| Service runtime    | **nginx** (image non-root)       | Sert le build statique ; pas de runtime Node en production             |
+| Choix              | Décision                                | Justification                                                          |
+|--------------------|------------------------------------------|------------------------------------------------------------------------|
+| Framework          | **Vue 3** (Composition API)              | Recommandé pour une SPA légère ; courbe d'apprentissage douce          |
+| Build / dev server | **Vite 8**                               | Démarrage instantané, HMR rapide, build optimisé                       |
+| Langage            | **TypeScript** (strict, `noUncheckedIndexedAccess`) | Typage statique, vérifié par `vue-tsc`                       |
+| Routing            | **vue-router** (history mode)            | Navigation client entre les 4 vues                                     |
+| État               | **Pinia**                                | Stores réactifs (`src/stores/`)                                        |
+| Client HTTP        | **axios**                                | Client `openfaasApi.ts`, appels au backend via `/api`                  |
+| TOTP (génération/vérif client) | **otpauth**                  | Lecture et vérification TOTP côté navigateur                           |
+| Décodage QR        | **jsqr**                                 | Décode le PNG QR renvoyé par `generate-password` pour afficher le mot de passe dans l'UI (sans qu'il transite en clair dans la réponse JSON) |
+| Icônes             | **lucide-vue-next**                      | `Eye` / `EyeOff` / `Copy` / `Check` pour les toggles password + boutons copier |
+| Styles             | **SCSS** (`sass`, BEM)                   | Feuille globale `src/assets/main.scss`                                 |
+| Paquets            | **Yarn** classic (lockfile v1)           | `yarn.lock`                                                            |
+| Lint / format      | **ESLint** (flat config) + **Prettier** (no-semis, single-quotes, 100c) | Qualité + format vérifiés par la CI (`yarn lint` + `yarn format:check`) |
+| Service runtime    | **nginx-unprivileged** (UID 101, port 8080) | Sert le build statique ; pas de runtime Node en production         |
 
 ## Structure du dépôt
 
@@ -73,14 +76,25 @@ cofrap-frontend/
 
 `vue-router` en **history mode** (`createWebHistory`). 4 routes :
 
-| Chemin       | Vue              | Rôle                                          |
-|--------------|------------------|-----------------------------------------------|
-| `/`          | `HomeView`       | Accueil                                       |
-| `/login`     | `LoginView`      | Authentification d'un utilisateur existant    |
-| `/register`  | `RegisterView`   | Création de compte (mot de passe + 2FA)       |
-| `/renew`     | `RenewView`      | Renouvellement des identifiants expirés       |
+| Chemin       | Vue              | Rôle                                                                                  |
+|--------------|------------------|---------------------------------------------------------------------------------------|
+| `/`          | `HomeView`       | Accueil                                                                                |
+| `/login`     | `LoginView`      | Authentification d'un utilisateur existant (username + password + TOTP, lock-out local) |
+| `/register`  | `RegisterView`   | Création de compte multi-étapes : mot de passe (généré + **affiché via décodage jsqr du QR**) → 2FA (QR + saisie du code) → confirmation |
+| `/renew`     | `RenewView`      | Renouvellement des identifiants expirés — mêmes étapes que Register                    |
 
 Le history mode implique que **le serveur doit renvoyer `index.html`** pour toute route inconnue, sinon un rechargement de page sur `/login` donne un 404. C'est le rôle du `try_files ... /index.html` de [`default.conf.template`](../../default.conf.template).
+
+## Affichage du mot de passe (décodage QR côté client)
+
+Le backend `generate-password` ne renvoie le mot de passe en clair **que dans le PNG QR** — jamais dans le champ JSON. Pour offrir une expérience utilisable (affichage masqué/révélé, bouton « Copier »), le frontend **décode lui-même le PNG QR avec [`jsqr`](https://github.com/cozmo/jsQR)** dans les vues `RegisterView` et `RenewView` :
+
+1. Réception du QR PNG (base64) dans la réponse de `generate-password`.
+2. Chargement dans un `<canvas>` invisible → `ImageData` → `jsQR(imageData)`.
+3. Le payload décodé = le mot de passe en clair → stocké uniquement en `ref()` local (jamais en store/localStorage).
+4. Rendu UI : QR cliquable (téléchargement PNG), bouton **Eye/EyeOff** (`lucide-vue-next`) pour révéler le mot de passe, bouton **Copy** (passe à **Check** après succès).
+
+Avantage sécurité : la valeur en clair ne traverse pas l'API en JSON — elle existe dans le bundle d'octets du PNG, qui devient le « canal unique » de transmission tel que défini par le sujet.
 
 ## Internationalisation
 
