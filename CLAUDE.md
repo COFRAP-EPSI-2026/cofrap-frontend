@@ -57,18 +57,21 @@ vite.config.ts            # proxy /api → http://127.0.0.1:8080 en dev
 ## Commandes courantes
 
 ```bash
-yarn install            # dépendances
-yarn dev                # serveur Vite + HMR → http://localhost:5173
-yarn build              # type-check (vue-tsc) + bundle dist/
-yarn build-only         # build sans type-check
-yarn type-check         # vue-tsc --build
-yarn lint               # ESLint (.ts + .vue) — yarn lint --fix pour auto-fixer
-yarn format             # Prettier sur src/
-yarn format:check       # Prettier en mode vérification (CI)
-yarn preview            # sert dist/ en local
+yarn install              # dépendances
+yarn dev                  # serveur Vite + HMR → http://localhost:5173
+yarn build                # type-check (vue-tsc) + bundle dist/
+yarn build-only           # build sans type-check
+yarn type-check           # vue-tsc --build
+yarn lint                 # ESLint (.ts + .vue) — yarn lint --fix pour auto-fixer
+yarn format               # Prettier sur src/
+yarn format:check         # Prettier en mode vérification (CI)
+yarn preview              # sert dist/ en local (aussi utilisé par Lighthouse)
+yarn check:i18n           # parité fr.ts ↔ en.ts (échoue si clé manquante d'un côté)
+yarn check:bundle-size    # budget de taille sur dist/ (après yarn build)
+yarn check:all            # enchaîne tous les checks bloquants en un seul coup
 ```
 
-Reproduire la validation CI en local : `yarn lint && yarn format:check && yarn type-check && yarn build`.
+Reproduire la validation CI en local : **`yarn check:all`** (équivalent compact des jobs bloquants : lint + format:check + type-check + i18n + build + bundle-size).
 
 ### Backend en local (deux options)
 
@@ -96,7 +99,7 @@ kubectl -n openfaas port-forward svc/gateway 8080:8080
 - **Accessibilité non négociable** : `useA11y` (préférences), `useTheme` (clair/sombre), OpenDyslexic, `useAudioReading`. Vérifier que les nouveaux composants respectent ces préférences (focus visible, contraste, ARIA labels).
 - **TypeScript strict** : `noUncheckedIndexedAccess` est activé — toute lecture `arr[i]` / `obj[key]` retourne `T | undefined`, à valider. Pas de `as any` pour contourner.
 - **Prettier** : pas de point-virgules, single quotes, largeur 100. Lancer `yarn format` avant chaque commit (ou compter sur la CI `format:check` qui *bloque*).
-- **ESLint** : règles Vue + TypeScript dans `eslint.config.js` (flat config). Les imports non utilisés sont une erreur — c'est ce qui a remonté que `useAudioReading` avait été importé sans être consommé.
+- **ESLint** : règles Vue + TypeScript dans `eslint.config.js` (flat config). `@typescript-eslint/no-explicit-any` est en **error** (pas seulement warn) — si tu as besoin de typer du dynamique, utilise `unknown` + narrowing, jamais `any`. Les imports non utilisés sont aussi une erreur.
 - **Pas de fichiers Vue sans `<script setup lang="ts">`** : la base du projet ne supporte que Composition API + TS.
 - **Style** : BEM dans `main.scss` (une seule feuille globale). Pas de `<style scoped>` dispersé sauf cas particulier — la cohérence visuelle passe par cette feuille.
 
@@ -122,9 +125,15 @@ Trois workflows GitHub Actions :
 
 | Workflow                                                     | Déclencheur                  | Rôle                                                                                                |
 |--------------------------------------------------------------|------------------------------|-----------------------------------------------------------------------------------------------------|
-| [`ci.yml`](.github/workflows/ci.yml)                         | PR vers `dev` ou `main`      | **Validation** : `lint` → `format:check` → `type-check` → `build` → build de l'image (sans push). Réutilisable via `workflow_call`. |
+| [`ci.yml`](.github/workflows/ci.yml)                         | PR vers `dev` ou `main`      | **Validation complète** : lint + format:check + type-check + i18n-parity + tests + build + bundle-size + lighthouse + scan image (Trivy) + SAST/SCA + SonarCloud. Réutilisable via `workflow_call`. |
 | [`pre-release.yml`](.github/workflows/pre-release.yml)       | push sur `dev` (+ merge-group)| Rejoue `ci.yml`, puis **publie l'image `:dev`** (+ `:dev-<sha>`) sur GHCR (multi-arch `linux/amd64,linux/arm64`). |
 | [`release-please.yml`](.github/workflows/release-please.yml) | push sur `main`              | **Voie principale de release** : Release PR → merge → tag `vX.Y.Z` + image `2026.X.Y` + `latest`. |
+
+### Jobs bloquants vs informatifs
+
+Jobs **bloquants** (échec = PR rouge) : `lint`, `type-check`, `i18n-parity`, `test`, `build` (inclut `check:bundle-size`), `docker-build`.
+
+Jobs **informatifs** (warn) : `lighthouse` (seuils dans `lighthouserc.json`), `security-sast` (TruffleHog), `security-sca` (yarn audit), `sonarcloud`. Pour durcir Lighthouse, remplacer `"warn"` par `"error"` dans `lighthouserc.json`.
 
 Toutes les publications GHCR utilisent `provenance: false` (évite les entrées d'arch `unknown/unknown`). Le PAT GHCR vit dans le secret `GHCR_PAT_TOKEN` (pas `GITHUB_TOKEN` : préfixe `GITHUB_` interdit en custom secret par GitHub, et le token par défaut est bloqué par certaines policies d'org).
 
@@ -145,9 +154,10 @@ Prérequis (une seule fois) : `Settings → Actions → General → Workflow per
 ## Quand tu finis quelque chose
 
 1. `yarn lint --fix && yarn format` (sinon la CI `format:check` te bloquera).
-2. `yarn type-check` (zéro erreur).
-3. `yarn build` doit passer (le type-check + le bundle).
-4. Toutes les nouvelles chaînes UI doivent vivre dans `src/lang/fr.ts` **et** `src/lang/en.ts`.
-5. Si tu touches un comportement utilisateur, mettre à jour `docs/fr/` **et** `docs/en/` (`development.md`, `architecture.md`, ou `troubleshooting.md` selon le cas) — dans le **même changement**.
-6. **Ne pas bumper la version manuellement** : Release Please s'en charge. Utiliser des commits Conventional (`feat:`, `fix:`, `chore:`, `docs:`).
-7. Pas de README/docs autogénérés sans demande explicite — le PoC veut rester lisible et concis.
+2. `yarn check:all` — enchaîne tous les checks bloquants. Si vert, la CI le sera aussi sur les jobs bloquants.
+3. Toutes les nouvelles chaînes UI doivent vivre dans `src/lang/fr.ts` **et** `src/lang/en.ts` (le job `i18n-parity` te bloquera sinon).
+4. Pas de `any` explicite (ESLint `no-explicit-any: error`) — utiliser `unknown` + narrowing.
+5. Si tu ajoutes une grosse dépendance, vérifier le budget : `yarn build && yarn check:bundle-size`. Ajuster les budgets dans `scripts/check-bundle-size.mjs` si justifié.
+6. Si tu touches un comportement utilisateur, mettre à jour `docs/fr/` **et** `docs/en/` (`development.md`, `architecture.md`, ou `troubleshooting.md` selon le cas) — dans le **même changement**.
+7. **Ne pas bumper la version manuellement** : Release Please s'en charge. Utiliser des commits Conventional (`feat:`, `fix:`, `chore:`, `docs:`).
+8. Pas de README/docs autogénérés sans demande explicite — le PoC veut rester lisible et concis.
