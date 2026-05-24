@@ -45,7 +45,7 @@ Frontend of the **COFRAP** PoC (MSPR TPRE912 — serverless development project)
 └─────────────────────────────┘         └──────────────────┘
 ```
 
-**Stack**: Vue 3 (Composition API) · Vite · TypeScript · vue-router · Pinia · SCSS — built as static files, served by **nginx**.
+**Stack**: Vue 3 (Composition API) · Vite 8 · TypeScript · vue-router · Pinia · axios · **jsqr** (client-side QR decoding to display the password) · **otpauth** (TOTP) · **lucide-vue-next** (icons) · SCSS — built as static files, served by **nginx**.
 
 The frontend is **bilingual** (FR/EN) and cares about **accessibility** (dedicated panel, audio reading, light/dark theme, OpenDyslexic font) — in line with the brief's inclusive-environment goal.
 

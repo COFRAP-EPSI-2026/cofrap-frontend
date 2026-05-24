@@ -48,3 +48,31 @@ Regarder les logs : `kubectl -n cofrap logs -l app.kubernetes.io/name=cofrap-fro
 ### Les probes échouent
 
 Les probes interrogent `/healthz`. Cet endpoint est défini dans `default.conf.template` (`location = /healthz`). S'il a été retiré, les probes échouent — le rétablir ou ajuster `probes.path` dans les values du chart.
+
+## Exposition publique (Cloudflare Tunnel)
+
+### `ERR_SSL_VERSION_OR_CIPHER_MISMATCH` sur le hostname public
+
+Vérifier dans le dashboard Cloudflare Zero Trust que **Public hostname → Path est VIDE**. Une valeur (ex. `^/blog` héritée d'un autre tunnel) restreint le tunnel à un chemin précis et tout le reste tombe → erreur TLS générique. Le champ Path doit rester totalement vide pour servir la racine.
+
+### Le tunnel pointe sur l'IP privée mais ne répond pas
+
+Trois causes fréquentes :
+
+1. **Pas de VIP stable** : si le cluster K3s multi-node tourne avec ServiceLB par défaut, chaque node bind le port — le tunnel pointe vers une IP qui n'est valide que sur un node. Installer **MetalLB** (cf. [`installation.md`](installation.md)) et pointer sur le VIP.
+2. **Ingress class incorrect** : `kubectl get ingress -A` doit montrer ton Ingress avec une `ADDRESS` non vide. Si vide, vérifier `kubectl get ingressclass`.
+3. **DNS Cloudflare manuel en plus** : un enregistrement A pointant directement sur l'IP privée court-circuite le tunnel. Tout doit passer par le hostname public auto-géré par le tunnel (CNAME proxied).
+
+### `denied` / `unauthorized` au déploiement (image GHCR introuvable)
+
+Le repo public ne rend pas le **package** OCI public automatiquement. Aller sur `https://github.com/orgs/<org>/packages/container/cofrap-frontend/settings` → **Change package visibility** → Public. À refaire **une seule fois** après le tout premier push de Release Please.
+
+## Affichage du mot de passe (QR jsqr)
+
+### Le bouton « Révéler » affiche `?` ou rien
+
+`jsQR()` a échoué à décoder le PNG. Causes possibles :
+
+- Le PNG est rendu trop petit / trop grand côté CSS → l'`ImageData` extrait du `<canvas>` est dégradé. Vérifier que le `<canvas>` source du décodage utilise la **taille native** du PNG (lire `naturalWidth`/`naturalHeight` après `img.onload`).
+- Le QR a été tronqué côté réseau (proxy, base64 mal collé). Tester avec `curl` direct et un viewer QR externe.
+- Côté frontend, ouvrir la console : `jsQR` retourne `null` quand il ne trouve rien — un `console.warn` doit le signaler.

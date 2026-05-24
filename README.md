@@ -45,7 +45,7 @@ Frontend du PoC **COFRAP** (MSPR TPRE912 — projet de développement serverless
 └─────────────────────────────┘         └──────────────────┘
 ```
 
-**Stack** : Vue 3 (Composition API) · Vite · TypeScript · vue-router · Pinia · SCSS — buildée en statique, servie par **nginx**.
+**Stack** : Vue 3 (Composition API) · Vite 8 · TypeScript · vue-router · Pinia · axios · **jsqr** (décodage QR côté client pour afficher le mot de passe) · **otpauth** (TOTP) · **lucide-vue-next** (icônes) · SCSS — buildée en statique, servie par **nginx**.
 
 Le frontend est **bilingue** (FR/EN) et soigne l'**accessibilité** (panneau dédié, lecture audio, thème clair/sombre, police OpenDyslexic) — en lien avec l'objectif d'environnement inclusif du sujet.
 
