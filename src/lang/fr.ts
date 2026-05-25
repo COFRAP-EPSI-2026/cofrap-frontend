@@ -1,6 +1,13 @@
 export const fr = {
   skipLink: 'Passer au contenu principal',
 
+  pageTitles: {
+    home: 'Accueil',
+    login: 'Connexion',
+    register: 'Création de compte',
+    renew: 'Renouvellement des identifiants',
+  },
+
   help: {
     buttonLabel: 'Aide',
     panelTitle: 'Aide',

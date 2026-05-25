@@ -20,18 +20,21 @@ At runtime, the app is a set of static files (HTML/CSS/JS) served by **nginx**. 
 
 ## Tech stack
 
-| Choice             | Decision                         | Rationale                                                              |
-|--------------------|----------------------------------|------------------------------------------------------------------------|
-| Framework          | **Vue 3** (Composition API)      | Recommended for a lightweight SPA; gentle learning curve               |
-| Build / dev server | **Vite**                         | Instant startup, fast HMR, optimised build                             |
-| Language           | **TypeScript**                   | Static typing, checked by `vue-tsc`                                    |
-| Routing            | **vue-router** (history mode)    | Client-side navigation across the 4 views                              |
-| State              | **Pinia**                        | Standard reactive store of the Vue 3 ecosystem                         |
-| HTTP client        | **axios**                        | `openfaasApi.ts` client, backend calls via `/api`                      |
-| 2FA / QR           | **otplib** / **otpauth** / **qrcode** | Client-side TOTP and QR code generation/reading                  |
-| Styles             | **SCSS** (`sass`)                | `src/assets/main.scss` stylesheet                                      |
-| Packages           | **Yarn** classic (lockfile v1)   | `yarn.lock`                                                            |
-| Runtime service    | **nginx** (non-root image)       | Serves the static build; no Node runtime in production                 |
+| Choice             | Decision                                 | Rationale                                                              |
+|--------------------|------------------------------------------|------------------------------------------------------------------------|
+| Framework          | **Vue 3** (Composition API)              | Recommended for a lightweight SPA; gentle learning curve               |
+| Build / dev server | **Vite 8**                               | Instant startup, fast HMR, optimised build                             |
+| Language           | **TypeScript** (strict, `noUncheckedIndexedAccess`) | Static typing, checked by `vue-tsc`                         |
+| Routing            | **vue-router** (history mode)            | Client-side navigation across the 4 views                              |
+| State              | **Pinia**                                | Reactive stores (`src/stores/`)                                        |
+| HTTP client        | **axios**                                | `openfaasApi.ts` client, backend calls via `/api`                      |
+| TOTP (client gen/verify) | **otpauth**                        | TOTP reading and verification in the browser                           |
+| QR decoding        | **jsqr**                                 | Decodes the PNG QR returned by `generate-password` to display the password in the UI (without sending it in cleartext in the JSON response) |
+| Icons              | **lucide-vue-next**                      | `Eye` / `EyeOff` / `Copy` / `Check` for password toggles + copy buttons |
+| Styles             | **SCSS** (`sass`, BEM)                   | Global `src/assets/main.scss`                                          |
+| Packages           | **Yarn** classic (lockfile v1)           | `yarn.lock`                                                            |
+| Lint / format      | **ESLint** (flat config) + **Prettier** (no-semis, single-quotes, 100c) | Quality + formatting checked by CI (`yarn lint` + `yarn format:check`) |
+| Runtime service    | **nginx-unprivileged** (UID 101, port 8080) | Serves the static build; no Node runtime in production             |
 
 ## Repository layout
 
@@ -73,14 +76,25 @@ cofrap-frontend/
 
 `vue-router` in **history mode** (`createWebHistory`). 4 routes:
 
-| Path         | View             | Role                                          |
-|--------------|------------------|-----------------------------------------------|
-| `/`          | `HomeView`       | Home                                          |
-| `/login`     | `LoginView`      | Authentication of an existing user            |
-| `/register`  | `RegisterView`   | Account creation (password + 2FA)             |
-| `/renew`     | `RenewView`      | Renewal of expired credentials                |
+| Path         | View             | Role                                                                                  |
+|--------------|------------------|---------------------------------------------------------------------------------------|
+| `/`          | `HomeView`       | Home                                                                                  |
+| `/login`     | `LoginView`      | Authentication of an existing user (username + password + TOTP, local lock-out)       |
+| `/register`  | `RegisterView`   | Multi-step account creation: password (generated + **displayed via jsqr QR decoding**) → 2FA (QR + code entry) → confirmation |
+| `/renew`     | `RenewView`      | Renewal of expired credentials — same steps as Register                               |
 
 History mode means **the server must return `index.html`** for any unknown route, otherwise reloading the page on `/login` yields a 404. That is the job of the `try_files ... /index.html` in [`default.conf.template`](../../default.conf.template).
+
+## Password display (client-side QR decoding)
+
+The `generate-password` backend only returns the cleartext password **inside the PNG QR** — never in the JSON field. To offer a usable experience (masked/revealed display, "Copy" button), the frontend **decodes the PNG QR itself with [`jsqr`](https://github.com/cozmo/jsQR)** in `RegisterView` and `RenewView`:
+
+1. Receive the PNG QR (base64) from the `generate-password` response.
+2. Load it into an invisible `<canvas>` → `ImageData` → `jsQR(imageData)`.
+3. The decoded payload = the cleartext password → kept only in a local `ref()` (never in a store / localStorage).
+4. UI rendering: clickable QR (PNG download), **Eye/EyeOff** button (`lucide-vue-next`) to reveal the password, **Copy** button (turns into **Check** on success).
+
+Security upside: the cleartext value never travels through the JSON API — it lives inside the PNG byte stream, which becomes the "single channel" of transmission as required by the brief.
 
 ## Internationalisation
 
@@ -122,3 +136,44 @@ The production gateway address is configurable via the Helm chart's `backend.gat
 2. `vite build` — minified production bundle in `dist/`.
 
 The `dist/` folder (HTML + fingerprinted assets) is then copied into the nginx image — see [`deployment.md`](deployment.md).
+
+## Performance & SEO
+
+A few explicit decisions to keep the initial bundle small and SEO clean — enforced by the `lighthouse` CI job.
+
+### Aggressive code splitting
+
+- **Routes** (`router/index.ts`): all use `() => import('@/views/...')` → one chunk per view.
+- **`jsqr`** (130 KB of JS): **dynamic import** in `RegisterView`/`RenewView` at decode time (`const jsQR = await import('jsqr')`). Not loaded at view mount — only when the user reaches the password step.
+- **`otpauth`**: automatic Vite chunk (statically imported by Register/Renew, ~25 KB).
+
+Result: the home page loads less than 200 KB of JS, and `/register` + `/renew` mount went from ~198 KB to ~78 KB of JS.
+
+### Fonts on demand
+
+- **Montserrat** (Google Fonts): loaded non-blocking via `media="print" onload="this.media='all'"` + `noscript` fallback.
+- **OpenDyslexic**: **no longer loaded unconditionally**. The `<link>` is dynamically injected by `useA11y` (`loadOpenDyslexic()`) only when the user enables the "Dyslexia font" option in the accessibility panel. Savings: ~50 KB + 1 DNS + 1 TLS handshake off the critical path for 95% of visitors.
+
+### SEO
+
+- **Dynamic per-route `<title>`**: `useDocumentTitle()` (called in `App.vue`) watches `route.name` + `currentLang` and writes `document.title = t.pageTitles[route.name] + ' — COFRAP Cloud'`. Labels live in `src/lang/{fr,en}.ts` (parity enforced by the `i18n-parity` job).
+- **Dynamic `<html lang>`**: updated by `useLang` on every language switch.
+- **Open Graph / Twitter Card**: static meta in `index.html` (enough for an internal PoC).
+- **`meta name="description"`**: present — resolves the Lighthouse `meta-description` audit.
+- **`robots.txt`**: `public/robots.txt` with `Disallow: /` (internal frontend, no public indexing).
+
+### Accessibility — WCAG decisions
+
+Explicit decisions to pass **WCAG 2 AA** on contrast and accessible names, audited by Lighthouse / axe-core:
+
+- **Contrasts** (`main.scss`) — every `--color-*` variable is tuned for ≥ **4.5:1** (normal text) or ≥ **3:1** (large text / UI components). Historical pitfalls fixed:
+  - `--color-copy-check` changed from `#22c55e` (vivid green, ~2.4:1 on white) to `#15803d` (~5.2:1)
+  - `--color-success-text` (light) changed from `#15803d` to `#14532d` (~7:1 on `--color-success-bg`)
+  - `--color-text-faint` (light) changed from `#6b7a94` to `#5a6a82` (~5.5:1 on white)
+  - `--color-text-faint` (dark) changed from `#6882a4` to `#8a9fbd` (~5.5:1 on dark)
+  - `.steps__circle` (the "done" step) now uses `var(--color-success-text)` instead of the bright `#16a34a`
+- **`label-content-name-mismatch`** (axe-core) — any `aria-label` must *include* the button's visible text. Example: the language toggle in `AppHeader` shows the visible text `"FR"` → its aria-label becomes `"Switch language (FR)"`. Otherwise Lighthouse fails.
+- **Lucide icons**: always `aria-hidden="true"` when a text label or `aria-label` accompanies the icon (avoids double reading by screen readers).
+- **`focus-visible` outline** everywhere (buttons, inputs, links) — overridable by the a11y panel's "Enhanced keyboard focus" option.
+- **Audio reading**: `useAudioReading` reads content on focus/hover when enabled. Off by default.
+- **OpenDyslexic**: lazy-loaded (see above) — applied to body content, **Montserrat kept on UI chrome** (buttons, header) because OpenDyslexic + `text-transform: uppercase` becomes unreadable.

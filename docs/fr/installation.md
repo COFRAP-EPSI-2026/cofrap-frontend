@@ -23,25 +23,28 @@ Déployer le frontend COFRAP sur **K3s**, **minikube** ou un **cluster existant*
 
 ## Étape 1 — image Docker
 
-Tant qu'aucune release n'est publiée sur GHCR, builder l'image localement et la rendre disponible au cluster.
+Le plus simple : pointer sur l'image GHCR publique publiée par Release Please. Les tags disponibles :
+
+| Tag                  | Provenance                                      | Quand l'utiliser                        |
+|----------------------|-------------------------------------------------|------------------------------------------|
+| `latest`             | dernier tag stable de `main`                    | démos rapides (pas reproductible)       |
+| `2026.X.Y`           | tag stable (Release Please)                     | déploiement reproductible (recommandé)  |
+| `dev`                | dernier commit `dev`                            | test d'une feature avant release        |
+| `dev-<sha>`          | commit précis sur `dev`                         | traçabilité                              |
+
+Si tu travailles sur un fork ou avant le premier push, builder localement (les scripts détectent le type de cluster — minikube, K3s, K3d, KinD) :
 
 ```bash
 git clone https://github.com/COFRAP-EPSI-2026/cofrap-frontend.git
 cd cofrap-frontend
-docker build -t ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0 .
-```
 
-Charger l'image dans le cluster selon le type :
+# Linux / WSL / Git Bash
+./scripts/prod/build-images.sh                # tag par défaut : "latest"
+TAG=mydev ./scripts/prod/build-images.sh      # surcharger le tag
 
-```bash
-# minikube
-minikube image load ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0
-
-# K3s
-docker save ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0 | sudo k3s ctr images import -
-
-# KinD
-kind load docker-image ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0
+# Windows PowerShell
+./scripts/prod/build-images.ps1
+./scripts/prod/build-images.ps1 -Tag mydev
 ```
 
 ## Étape 2 — déploiement Helm
@@ -49,12 +52,27 @@ kind load docker-image ghcr.io/cofrap-epsi-2026/cofrap-frontend:2026.1.0
 ```bash
 helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
   --namespace cofrap --create-namespace \
-  --set image.tag=2026.1.0 \
+  --set image.tag=latest \
   --set image.pullPolicy=IfNotPresent \
   --set ingress.host=cofrap.example.com
 ```
 
-> `image.pullPolicy=IfNotPresent` évite que Kubernetes tente de re-télécharger l'image depuis GHCR (où elle n'existe pas tant qu'aucune release n'est publiée).
+> `image.pullPolicy=IfNotPresent` évite que Kubernetes tente de re-télécharger l'image depuis GHCR lorsqu'elle vient d'être chargée localement.
+
+### Exposition derrière un Cloudflare Tunnel
+
+Si le cluster est exposé via un **Cloudflare Tunnel** (hostname public → backend interne), Cloudflare termine déjà TLS — pas besoin de l'Ingress chart `tls.enabled=true`. Pointer le tunnel sur le **VIP** du LoadBalancer (ex. MetalLB) qui sert le contrôleur d'Ingress :
+
+```bash
+helm install cofrap-frontend ./deploy/helm/cofrap-frontend \
+  --namespace cofrap --create-namespace \
+  --set image.tag=latest \
+  --set ingress.host=cofrap.example.com \
+  --set ingress.tls.enabled=false
+# Côté Cloudflare Zero Trust : Public hostname → HTTP → <VIP-LB>:80, Path vide.
+```
+
+> Pour un cluster K3s multi-node, ServiceLB par défaut bind sur chaque node — préférer désactiver ServiceLB et installer **MetalLB** pour avoir un VIP stable que le tunnel cible (cf. [`troubleshooting.md`](troubleshooting.md)).
 
 ## Variante minikube
 
@@ -80,6 +98,49 @@ K3s embarque **Traefik** comme ingress controller — rien à installer, `ingres
 curl -sfL https://get.k3s.io | sh -
 # … étape 1 puis étape 2 avec --set ingress.className=traefik
 ```
+
+### K3s multi-node + MetalLB (pour exposer une IP virtuelle stable)
+
+ServiceLB par défaut de K3s ouvre le port sur chaque node, ce qui rend l'adresse cible instable
+(plusieurs IPs, redémarrage de pods). Pour un déploiement homelab/prod avec Cloudflare Tunnel
+ou un DNS pointant vers une **seule** IP, désactiver ServiceLB et installer **MetalLB** en
+mode L2 :
+
+```bash
+# 1. Désactiver ServiceLB côté serveur K3s
+sudo tee /etc/rancher/k3s/config.yaml > /dev/null <<'EOF'
+disable:
+  - servicelb
+EOF
+sudo systemctl restart k3s
+
+# 2. Installer MetalLB (manifeste natif — éviter le chart à cause d'un bug frr-k8s)
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+kubectl -n metallb-system wait --for=condition=Ready pod --all --timeout=120s
+
+# 3. Attribuer un pool d'IPs (ex. une seule IP du LAN libre)
+kubectl apply -f - <<'EOF'
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: lan-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.1.240/32
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: lan-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - lan-pool
+EOF
+```
+
+Le service `traefik` de K3s prend automatiquement le VIP (`kubectl -n kube-system get svc traefik`). C'est cette IP que tu pointes ensuite depuis Cloudflare Tunnel ou un DNS interne.
 
 ## Vérification
 

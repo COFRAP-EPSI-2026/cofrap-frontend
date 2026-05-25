@@ -1,6 +1,13 @@
 export const en = {
   skipLink: 'Skip to main content',
 
+  pageTitles: {
+    home: 'Home',
+    login: 'Sign in',
+    register: 'Create account',
+    renew: 'Credentials renewal',
+  },
+
   help: {
     buttonLabel: 'Help',
     panelTitle: 'Help',

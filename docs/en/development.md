@@ -26,16 +26,19 @@ Vite starts a dev server with **HMR** (hot module replacement) — by default on
 
 ## Yarn scripts
 
-| Script             | Effect                                                                  |
-|--------------------|--------------------------------------------------------------------------|
-| `yarn dev`         | Vite dev server + HMR                                                   |
-| `yarn build`       | Type checking (`vue-tsc`) **then** production build (`dist/`)            |
-| `yarn build-only`  | Production build without type checking                                  |
-| `yarn type-check`  | TypeScript checking only (`vue-tsc --build`)                            |
-| `yarn lint`        | ESLint analysis of `.ts` / `.vue` (`yarn lint --fix` to auto-fix)       |
-| `yarn preview`     | Serves the already-built `dist/` locally (check the prod rendering)     |
-| `yarn format`      | Formats `src/` with Prettier                                            |
-| `yarn format:check`| Checks formatting without modifying files (used by CI)                  |
+| Script                  | Effect                                                                                            |
+|-------------------------|---------------------------------------------------------------------------------------------------|
+| `yarn dev`              | Vite dev server + HMR                                                                             |
+| `yarn build`            | Type checking (`vue-tsc`) **then** production build (`dist/`)                                     |
+| `yarn build-only`       | Production build without type checking                                                            |
+| `yarn type-check`       | TypeScript checking only (`vue-tsc --build`)                                                      |
+| `yarn lint`             | ESLint analysis of `.ts` / `.vue` (`yarn lint --fix` to auto-fix)                                 |
+| `yarn preview`          | Serves the already-built `dist/` locally (check the prod rendering, also used by Lighthouse)      |
+| `yarn format`           | Formats `src/` with Prettier                                                                      |
+| `yarn format:check`     | Checks formatting without modifying files (used by CI)                                            |
+| `yarn check:i18n`       | Checks that `src/lang/fr.ts` and `en.ts` share the **same keys** (bilingual rule from CLAUDE.md)  |
+| `yarn check:bundle-size`| Checks that `dist/` stays within the size budgets (`scripts/check-bundle-size.mjs`)               |
+| `yarn check:all`        | Chains `lint` → `format:check` → `type-check` → `check:i18n` → `build` → `check:bundle-size`      |
 
 ## Code conventions
 
@@ -109,13 +112,55 @@ docker run --rm -p 8080:8080 cofrap-frontend:dev
 
 Three GitHub Actions workflows, easy to follow:
 
-| Workflow | Trigger | Role |
-|----------|---------|------|
-| `ci.yml` | PR to `dev` or `main` | **Validation**: `lint` → `format:check` → `type-check` → `build` → image build (no push) |
-| `pre-release.yml` | push to `dev` | Replays `ci.yml`; if green, **publishes the `:dev` image** (+ `:dev-<sha>`) to GHCR |
-| `release-please.yml` | push to `main` | **Stable release** (see below) |
+| Workflow             | Trigger                | Role                                                                                              |
+|----------------------|------------------------|---------------------------------------------------------------------------------------------------|
+| `ci.yml`             | PR to `dev` or `main`  | **Full validation** (see job breakdown below)                                                     |
+| `pre-release.yml`    | push to `dev`          | Replays `ci.yml`; if green, **publishes the `:dev` image** (+ `:dev-<sha>`) to GHCR               |
+| `release-please.yml` | push to `main`         | **Stable release** (see below)                                                                    |
 
-Reproduce validation locally: `yarn lint && yarn format:check && yarn type-check && yarn build`.
+### `ci.yml` jobs
+
+| Job              | Tool                           | Blocks PR? | What it checks                                                          |
+|------------------|--------------------------------|------------|-------------------------------------------------------------------------|
+| `lint`           | ESLint + Prettier              | ✅          | Code quality + formatting (`no-explicit-any` set to **error**)          |
+| `type-check`     | vue-tsc                        | ✅          | TypeScript types (`noUncheckedIndexedAccess` strict)                    |
+| `i18n-parity`    | `scripts/check-i18n.ts` (tsx)  | ✅          | Every `fr.ts` key exists in `en.ts` and vice-versa                      |
+| `security-sast`  | TruffleHog                     | ⚠ no        | Secret leaks in the diff                                                |
+| `security-sca`   | `yarn npm audit`               | ⚠ no        | Dependency vulnerabilities                                              |
+| `test`           | Vitest (if configured)         | ✅          | Unit tests                                                              |
+| `build`          | `yarn build-only`              | ✅          | Production build **+ size budget** (`check:bundle-size`)                |
+| `lighthouse`     | `treosh/lighthouse-ci-action`  | ⚠ no (warn) | Performance / accessibility / SEO / best-practices on `/` and `/login`  |
+| `docker-build`   | Buildx + Trivy                 | ✅          | Image build + OS/lib CVE scan                                           |
+| `sonarcloud`     | SonarCloud                     | ⚠ no        | Overall quality, tech debt                                              |
+
+Reproduce validation locally: `yarn check:all` (compact equivalent of the blocking jobs).
+
+### Lighthouse CI — thresholds
+
+Defined in [`lighthouserc.json`](../../lighthouserc.json), in `warn` mode (visible but non-blocking):
+
+| Category        | Minimum score |
+|-----------------|---------------|
+| Performance     | 80            |
+| Accessibility   | 90            |
+| Best Practices  | 85            |
+| SEO             | 80            |
+
+HTML reports are uploaded as the `lighthouse-reports` artifact (14-day retention). To
+harden: change `"warn"` to `"error"` in `lighthouserc.json` — Lighthouse will then block PRs
+when scores drop.
+
+Reproduce locally (requires Chrome): `yarn build && yarn dlx @lhci/cli@0.13.x autorun`.
+
+### Bundle size budget
+
+Configured in [`scripts/check-bundle-size.mjs`](../../scripts/check-bundle-size.mjs). Aggregated
+per extension (`.js` ≤ 800 KB, `.css` ≤ 150 KB) plus per file (`index.html` ≤ 10 KB). Tweak the
+budgets by editing the `BUDGETS` constant in the script. Run on its own:
+
+```bash
+yarn build && yarn check:bundle-size
+```
 
 ## Releases (Release Please)
 
