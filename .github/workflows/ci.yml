@@ -122,7 +122,7 @@ jobs:
       - name: Bundle size budget
         run: yarn check:bundle-size
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist
@@ -152,7 +152,7 @@ jobs:
           temporaryPublicStorage: false
       - name: Upload Lighthouse HTML reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lighthouse-reports
           path: .lighthouseci
