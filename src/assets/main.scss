@@ -14,7 +14,8 @@
   --color-text: #111827;
   --color-text-strong: #1a3560;
   --color-text-muted: #455572;
-  --color-text-faint: #6b7a94;
+  // Contraste WCAG AA — #5a6a82 sur surface blanche ≈ 5.5:1 (vs #6b7a94 ≈ 4.3:1).
+  --color-text-faint: #5a6a82;
   --color-primary: #1c52a0;
   --color-primary-btn: #1a3560;
   --color-primary-ring: rgb(28 82 160 / 12%);
@@ -27,8 +28,11 @@
   --color-warning-border: #f43f5e;
   --color-warning-text: #9f1239;
   --color-success-bg: #dcfce7;
-  --color-success-text: #15803d;
-  --color-copy-check: #22c55e;
+  // Contraste WCAG AA — #14532d sur --color-success-bg ≈ 7:1 (vs #15803d ≈ 4:1).
+  --color-success-text: #14532d;
+  // L'icône Copy "Copié" s'affiche sur surface blanche → besoin d'un vert foncé.
+  // #15803d ≈ 5.2:1 sur blanc (vs #22c55e ≈ 2.4:1 qui rate WCAG AA).
+  --color-copy-check: #15803d;
   --color-shadow: rgb(26 53 96 / 12%);
 }
 
@@ -41,7 +45,8 @@
   --color-text: #e8eef6;
   --color-text-strong: #f0f4fa;
   --color-text-muted: #8ea6c8;
-  --color-text-faint: #6882a4;
+  // Contraste WCAG AA — #8a9fbd sur surface sombre ≈ 5.5:1 (vs #6882a4 ≈ 4:1).
+  --color-text-faint: #8a9fbd;
   --color-primary: #5b93d8;
   --color-primary-btn: #1c52a0;
   --color-primary-ring: rgb(91 147 216 / 20%);
@@ -661,8 +666,10 @@ input {
 
     &--done {
       .steps__circle {
-        background: #16a34a;
-        border-color: #16a34a;
+        // Réutilise --color-success-text (vert foncé) : texte blanc dessus passe
+        // WCAG AA sur un cercle de 24px avec chiffre 11px bold.
+        background: var(--color-success-text);
+        border-color: var(--color-success-text);
         color: #fff;
       }
     }

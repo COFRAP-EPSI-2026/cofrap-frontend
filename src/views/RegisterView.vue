@@ -248,11 +248,14 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import * as OTPAuth from 'otpauth'
 import { Check, Eye, EyeOff, Smartphone } from '@lucide/vue'
-import jsQR from 'jsqr'
 
 import AuthLayout from '@/components/AuthLayout.vue'
 import { generatePassword, generate2fa, apiErrorMessage } from '@/components/openfaasApi'
 import { useLang } from '@/composables/useLang'
+
+// `jsqr` pèse ~155 KB de JS — dynamic import au moment du décodage du QR pour
+// le sortir du chemin critique (et le code-splitter automatiquement par Vite).
+const loadJsQR = () => import('jsqr').then((m) => m.default)
 
 const { t } = useLang()
 
@@ -389,6 +392,7 @@ const decodeQrFromDataUrl = async (dataUrl: string): Promise<string> => {
     if (!ctx) return ''
     ctx.drawImage(img, 0, 0)
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const jsQR = await loadJsQR()
     const code = jsQR(imageData.data, imageData.width, imageData.height)
     return code?.data ?? ''
   } catch {

@@ -2,6 +2,27 @@ import { ref, watch } from 'vue'
 
 type FontSize = 'default' | 'large' | 'larger'
 
+// Charge la feuille OpenDyslexic à la demande — une seule fois pour toute la
+// session. Évite de bloquer le 1er render pour 95 % des visiteurs qui ne
+// l'activeront jamais. Cf. perf Lighthouse (`render-blocking-insight`).
+const OPENDYSLEXIC_HREF = 'https://fonts.cdnfonts.com/css/opendyslexic'
+let openDyslexicLoaded = false
+function loadOpenDyslexic() {
+  if (openDyslexicLoaded || typeof document === 'undefined') return
+  openDyslexicLoaded = true
+  // Pré-connexion DNS+TLS pour réduire le délai au prochain GET.
+  const preconnect = document.createElement('link')
+  preconnect.rel = 'preconnect'
+  preconnect.href = 'https://fonts.cdnfonts.com'
+  preconnect.crossOrigin = 'anonymous'
+  document.head.appendChild(preconnect)
+
+  const sheet = document.createElement('link')
+  sheet.rel = 'stylesheet'
+  sheet.href = OPENDYSLEXIC_HREF
+  document.head.appendChild(sheet)
+}
+
 interface A11yState {
   fontSize: FontSize
   highContrast: boolean
@@ -34,6 +55,9 @@ function applyA11y() {
   html.setAttribute('data-enhanced-focus', flag(enhancedFocus.value))
   html.setAttribute('data-spacing', increasedSpacing.value ? 'large' : 'default')
   html.setAttribute('data-readable-font', flag(readableFont.value))
+
+  // Charge la police OpenDyslexic uniquement quand l'option est activée.
+  if (readableFont.value) loadOpenDyslexic()
 
   localStorage.setItem(
     'cofrap-a11y',

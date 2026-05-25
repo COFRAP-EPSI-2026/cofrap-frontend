@@ -21,8 +21,10 @@ import { useRoute } from 'vue-router'
 import { setupAudioReading } from '@/composables/useAudioReading'
 import AppHeader from '@/components/AppHeader.vue'
 import { useLang } from '@/composables/useLang'
+import { useDocumentTitle } from '@/composables/useDocumentTitle'
 
 setupAudioReading()
+useDocumentTitle()
 
 const { t } = useLang()
 
