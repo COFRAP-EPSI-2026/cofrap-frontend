@@ -1,0 +1,4 @@
+# COFRAP Cloud — PoC MSPR TPRE912.
+# Frontend interne : on n'autorise pas l'indexation.
+User-agent: *
+Disallow: /
