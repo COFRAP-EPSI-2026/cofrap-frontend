@@ -136,3 +136,44 @@ L'adresse du gateway en production est configurable via la valeur `backend.gatew
 2. `vite build` — bundle de production minifié dans `dist/`.
 
 Le dossier `dist/` (HTML + assets fingerprintés) est ensuite copié dans l'image nginx — voir [`deployment.md`](deployment.md).
+
+## Performances & SEO
+
+Plusieurs choix sont faits explicitement pour garder le bundle initial petit et le SEO propre — vérifiés par le job `lighthouse` de la CI.
+
+### Code splitting agressif
+
+- **Routes** (`router/index.ts`) : toutes en `() => import('@/views/...')` → un chunk par vue.
+- **`jsqr`** (130 KB de JS) : **dynamic import** dans `RegisterView`/`RenewView` au moment du décodage du QR (`const jsQR = await import('jsqr')`). N'est pas chargé au mount des vues — uniquement quand l'étape mot de passe est atteinte.
+- **`otpauth`** : chunk séparé automatique de Vite (utilisé statiquement dans Register/Renew, ~25 KB).
+
+Résultat : la page d'accueil charge moins de 200 KB de JS, et `/register` + `/renew` passent de ~198 KB à ~78 KB de JS au mount initial.
+
+### Polices à la demande
+
+- **Montserrat** (Google Fonts) : chargé non-bloquant via le pattern `media="print" onload="this.media='all'"` + `noscript` fallback.
+- **OpenDyslexic** : **plus chargé inconditionnellement**. Le `<link>` est injecté dynamiquement par `useA11y` (`loadOpenDyslexic()`) uniquement quand l'utilisateur active l'option « Police dyslexie » dans le panneau d'accessibilité. Économie : ~50 KB + 1 DNS + 1 handshake TLS sur le chemin critique pour 95 % des visiteurs.
+
+### SEO
+
+- **`<title>` dynamique par route** : `useDocumentTitle()` (appelé dans `App.vue`) watche `route.name` + `currentLang` et écrit `document.title = t.pageTitles[route.name] + ' — COFRAP Cloud'`. Les libellés vivent dans `src/lang/{fr,en}.ts` (parité garantie par le job `i18n-parity`).
+- **`<html lang>` dynamique** : mis à jour par `useLang` à chaque bascule de langue.
+- **Open Graph / Twitter Card** : meta statiques dans `index.html` (suffisant pour un PoC interne).
+- **`meta name="description"`** : présente — résout l'audit Lighthouse `meta-description`.
+- **`robots.txt`** : `public/robots.txt` avec `Disallow: /` (frontend interne, pas d'indexation publique).
+
+### Accessibilité — décisions WCAG
+
+Décisions explicites pour passer **WCAG 2 AA** sur les contrastes et les noms accessibles, audités par Lighthouse / axe-core :
+
+- **Contrastes** (`main.scss`) — toutes les variables `--color-*` sont calibrées ≥ **4.5:1** (texte normal) ou ≥ **3:1** (texte large / composants UI). Pièges historiques fixés :
+  - `--color-copy-check` passé de `#22c55e` (vert vif, ~2.4:1 sur blanc) à `#15803d` (~5.2:1)
+  - `--color-success-text` (light) passé de `#15803d` à `#14532d` (~7:1 sur `--color-success-bg`)
+  - `--color-text-faint` (light) passé de `#6b7a94` à `#5a6a82` (~5.5:1 sur blanc)
+  - `--color-text-faint` (dark) passé de `#6882a4` à `#8a9fbd` (~5.5:1 sur fond sombre)
+  - `.steps__circle` (étape « done ») utilise désormais `var(--color-success-text)` au lieu du `#16a34a` vif
+- **`label-content-name-mismatch`** (axe-core) — toute `aria-label` doit *inclure* le texte visible du bouton. Exemple : le bouton « Changer la langue » dans `AppHeader` a un texte visible `"FR"` → l'aria-label devient `"Changer la langue (FR)"`. Sinon Lighthouse échoue.
+- **Icônes Lucide** : toujours `aria-hidden="true"` quand un texte ou un `aria-label` accompagne l'icône (sinon double-lecture par les lecteurs d'écran).
+- **`focus-visible` outline** partout (boutons, inputs, liens) — surchargé par l'option « Focus clavier renforcé » du panneau a11y.
+- **Lecture audio** : `useAudioReading` lit le contenu au focus/hover quand activé. Désactivable, off par défaut.
+- **OpenDyslexic** : police lazy-loaded (cf. plus haut) — active la police au texte du contenu, **garde Montserrat** sur l'UI chrome (boutons, header) car OpenDyslexic + `text-transform: uppercase` devient illisible.

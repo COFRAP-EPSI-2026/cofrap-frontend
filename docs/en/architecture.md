@@ -136,3 +136,44 @@ The production gateway address is configurable via the Helm chart's `backend.gat
 2. `vite build` — minified production bundle in `dist/`.
 
 The `dist/` folder (HTML + fingerprinted assets) is then copied into the nginx image — see [`deployment.md`](deployment.md).
+
+## Performance & SEO
+
+A few explicit decisions to keep the initial bundle small and SEO clean — enforced by the `lighthouse` CI job.
+
+### Aggressive code splitting
+
+- **Routes** (`router/index.ts`): all use `() => import('@/views/...')` → one chunk per view.
+- **`jsqr`** (130 KB of JS): **dynamic import** in `RegisterView`/`RenewView` at decode time (`const jsQR = await import('jsqr')`). Not loaded at view mount — only when the user reaches the password step.
+- **`otpauth`**: automatic Vite chunk (statically imported by Register/Renew, ~25 KB).
+
+Result: the home page loads less than 200 KB of JS, and `/register` + `/renew` mount went from ~198 KB to ~78 KB of JS.
+
+### Fonts on demand
+
+- **Montserrat** (Google Fonts): loaded non-blocking via `media="print" onload="this.media='all'"` + `noscript` fallback.
+- **OpenDyslexic**: **no longer loaded unconditionally**. The `<link>` is dynamically injected by `useA11y` (`loadOpenDyslexic()`) only when the user enables the "Dyslexia font" option in the accessibility panel. Savings: ~50 KB + 1 DNS + 1 TLS handshake off the critical path for 95% of visitors.
+
+### SEO
+
+- **Dynamic per-route `<title>`**: `useDocumentTitle()` (called in `App.vue`) watches `route.name` + `currentLang` and writes `document.title = t.pageTitles[route.name] + ' — COFRAP Cloud'`. Labels live in `src/lang/{fr,en}.ts` (parity enforced by the `i18n-parity` job).
+- **Dynamic `<html lang>`**: updated by `useLang` on every language switch.
+- **Open Graph / Twitter Card**: static meta in `index.html` (enough for an internal PoC).
+- **`meta name="description"`**: present — resolves the Lighthouse `meta-description` audit.
+- **`robots.txt`**: `public/robots.txt` with `Disallow: /` (internal frontend, no public indexing).
+
+### Accessibility — WCAG decisions
+
+Explicit decisions to pass **WCAG 2 AA** on contrast and accessible names, audited by Lighthouse / axe-core:
+
+- **Contrasts** (`main.scss`) — every `--color-*` variable is tuned for ≥ **4.5:1** (normal text) or ≥ **3:1** (large text / UI components). Historical pitfalls fixed:
+  - `--color-copy-check` changed from `#22c55e` (vivid green, ~2.4:1 on white) to `#15803d` (~5.2:1)
+  - `--color-success-text` (light) changed from `#15803d` to `#14532d` (~7:1 on `--color-success-bg`)
+  - `--color-text-faint` (light) changed from `#6b7a94` to `#5a6a82` (~5.5:1 on white)
+  - `--color-text-faint` (dark) changed from `#6882a4` to `#8a9fbd` (~5.5:1 on dark)
+  - `.steps__circle` (the "done" step) now uses `var(--color-success-text)` instead of the bright `#16a34a`
+- **`label-content-name-mismatch`** (axe-core) — any `aria-label` must *include* the button's visible text. Example: the language toggle in `AppHeader` shows the visible text `"FR"` → its aria-label becomes `"Switch language (FR)"`. Otherwise Lighthouse fails.
+- **Lucide icons**: always `aria-hidden="true"` when a text label or `aria-label` accompanies the icon (avoids double reading by screen readers).
+- **`focus-visible` outline** everywhere (buttons, inputs, links) — overridable by the a11y panel's "Enhanced keyboard focus" option.
+- **Audio reading**: `useAudioReading` reads content on focus/hover when enabled. Off by default.
+- **OpenDyslexic**: lazy-loaded (see above) — applied to body content, **Montserrat kept on UI chrome** (buttons, header) because OpenDyslexic + `text-transform: uppercase` becomes unreadable.

@@ -9,7 +9,11 @@
     </div>
 
     <div role="toolbar" aria-label="Actions de la page" class="app-header__actions">
-      <button type="button" :aria-label="t.header.langButtonLabel" @click="switchLang">
+      <button
+        type="button"
+        :aria-label="`${t.header.langButtonLabel} (${currentLang === 'fr' ? 'FR' : 'EN'})`"
+        @click="switchLang"
+      >
         <Languages :size="18" aria-hidden="true" />
         <span class="app-header__lang-label">{{ currentLang === 'fr' ? 'FR' : 'EN' }}</span>
       </button>

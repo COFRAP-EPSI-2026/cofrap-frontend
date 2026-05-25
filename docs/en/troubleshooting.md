@@ -67,6 +67,22 @@ Three common causes:
 
 A public repo does not automatically make the OCI **package** public. Go to `https://github.com/orgs/<org>/packages/container/cofrap-frontend/settings` → **Change package visibility** → Public. Done **once** after the very first Release Please push.
 
+## Lighthouse — acceptable warnings
+
+The following Lighthouse audits may surface as `warn` in the HTML report without being real bugs — documented here to avoid a fruitless chase:
+
+### `bf-cache` — "Page prevented back/forward cache restoration"
+
+Only happens with the **`vite preview` server** used in CI (which likely sends anti-cache headers). Application code installs no `beforeunload`/`unload`/`pagehide` listener, no Service Worker, and no open connections (WebSocket, SSE). In real production behind nginx, bf-cache works correctly (no `Cache-Control: no-store` header in `default.conf.template`).
+
+### `errors-in-console` — "Browser errors were logged to the console"
+
+False positive when CI runs `vite preview` **without a reachable backend**: any interaction hitting `/api/...` produces a network error logged by the browser itself (not by our code — `openfaasApi.ts` catches everything via `try/catch`). In CI we only audit `/` and `/login`, which trigger no API call on mount, so it should stay at 0. If it surfaces anyway: check that a freshly added component isn't doing a fetch on mount.
+
+### `render-blocking-insight`, `network-dependency-tree-insight`
+
+Tier 2 optimisations (async chunks, fonts on demand). `jsqr` and OpenDyslexic are already off the critical path — see [`architecture.md#performance--seo`](architecture.md). A new round of optimisation (HTTP/2 push, critical CSS) is not warranted for the PoC scope.
+
 ## Password display (jsqr QR)
 
 ### The "Reveal" button shows `?` or nothing
