@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026.5.0](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/compare/v2026.4.0...v2026.5.0) (2026-06-04)
+
+
+### Features
+
+* ajouter la gestion de la navigation pour purger le brouillon lo… ([ca99f9b](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/commit/ca99f9b32a7ea188f361da8763d38e9078b09c90))
+* ajouter la gestion de la navigation pour purger le brouillon lors de la sortie des vues d'enregistrement et de renouvellement ([1e8be6d](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/commit/1e8be6de071536475050923d036a68ef5167c7c9))
+
 ## [2026.4.0](https://github.com/COFRAP-EPSI-2026/cofrap-frontend/compare/v2026.3.0...v2026.4.0) (2026-05-25)
 
 
