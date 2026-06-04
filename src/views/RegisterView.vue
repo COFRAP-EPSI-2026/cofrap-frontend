@@ -246,6 +246,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import * as OTPAuth from 'otpauth'
 import { Check, Eye, EyeOff, Smartphone } from '@lucide/vue'
 
@@ -335,6 +336,16 @@ watch([step, username, passwordText, passwordQr, totpQr, totpInstance], () => {
       otpauthUri: totpInstance.value?.toString() ?? '',
     }),
   )
+})
+
+// Si l'utilisateur quitte /register via une navigation in-app (clic sur un
+// lien, bouton "Retour à l'accueil", touche back du navigateur…), purger le
+// brouillon afin que le prochain accès à /register reparte de zéro.
+// Les bascules vers une autre app (Google Authenticator pour scanner le QR)
+// ne déclenchent PAS ce hook — le brouillon reste disponible pour la
+// restauration mobile au retour.
+onBeforeRouteLeave(() => {
+  sessionStorage.removeItem(SESSION_KEY)
 })
 
 onMounted(() => {
