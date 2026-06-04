@@ -18,7 +18,7 @@
     "check:all": "yarn lint && yarn format:check && yarn type-check && yarn check:i18n && yarn build && yarn check:bundle-size"
   },
   "dependencies": {
-    "@lucide/vue": "^1.16.0",
+    "@lucide/vue": "^1.17.0",
     "axios": "^1.16.0",
     "jsqr": "^1.4.0",
     "otpauth": "^9.5.1",
