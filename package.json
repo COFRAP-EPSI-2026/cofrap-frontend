@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.16.0",
-    "axios": "^1.16.0",
+    "axios": "^1.17.0",
     "jsqr": "^1.4.0",
     "otpauth": "^9.5.1",
     "pinia": "^3.0.4",
