@@ -555,10 +555,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@lucide/vue@^1.16.0":
-  version "1.16.0"
-  resolved "https://registry.yarnpkg.com/@lucide/vue/-/vue-1.16.0.tgz#892546320c1f5a1de2e3129cfb862d0a705f3243"
-  integrity sha512-kiHx0fe49DMjQuvNaEOu9Jou6u9FwdqQ8xbZIKlD47sXrOI8g59kIeeQL42NBLI4AvO+UJsbaPX0hEK/4rHSBQ==
+"@lucide/vue@^1.17.0":
+  version "1.17.0"
+  resolved "https://registry.yarnpkg.com/@lucide/vue/-/vue-1.17.0.tgz#63d2a7e61f6fb180bdcbaf0446a81aaffd995482"
+  integrity sha512-6Q1ZHgr5FbmJzKWe5BxlNdjLj2lbmuH1zwDtVzUJofX0w9UREwKgq4F4jwKqFYyyIS4Rj3FiJvDi2k6djukmmw==
 
 "@napi-rs/wasm-runtime@^1.1.4":
   version "1.1.4"
